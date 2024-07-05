@@ -1,15 +1,18 @@
 ---
-title: "Secondary QC and Decontamination - NBS2021 & NBS/SBS 2022 eDNA w/ MiFish"
+title: "Secondary QC and Decontamination"
 author: "Kimberly Ledger"
-date: "2024-04-26"
+date: "2024-06-18"
 output: html_document
 ---
+
+Dataset: NBS 2021/22/23, SBS 2022, and DBO 2021/23 eDNA w/ MiFish
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(root.dir = "/home/kimberly.ledger/BeringSea_Arctic_eDNA/")
 ```
 
-Inputs: This code starts with the ASV table output from dada_blast.sh that uses dadasnake for preliminary quality control.
+Inputs: This code starts with the ASV table output from dadasnake.sh that uses dadasnake for preliminary quality control.
 
 load libraries 
 ```{r, message=FALSE}
@@ -23,8 +26,7 @@ library(reshape)
 
 load ASV table and metadata
 ```{r}
-#asv_table <- readRDS("data/filtered.seqTab.RDS") %>%
-asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/filtered.seqTab.RDS") %>%
+asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake/filtered.seqTab.RDS") %>%
   select(!Row.names)
 
 #transpose 
@@ -43,21 +45,37 @@ for (col in names(asv_table)) {
 }
 
 #make make sample ID a column 
-asv_table$Sample_ID <- rownames(asv_table)
-asv_table$Sample_ID <- as.factor(asv_table$Sample_ID)
+asv_table$sample_ID <- rownames(asv_table)
 
-#metadata <- read.csv("data/NBS_SBS_2022_metadata.csv")
-metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_2022_metadata.csv")
+#rename the one sample that got the wrong ID in the sample sheet 
+asv_table <- asv_table %>%
+  mutate(sample_ID = ifelse(sample_ID == "e0683-A", "e00683-A", sample_ID)) %>%
+  mutate(sample_ID = ifelse(sample_ID == "e0683-B", "e00683-B", sample_ID)) %>%
+  mutate(sample_ID = ifelse(sample_ID == "e0683-C", "e00683-C", sample_ID))  
+
+#asv_table$sample_ID <- as.factor(asv_table$sample_ID)
+
+#read in some sample metadata to work with 
+sample_metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/sample_names_NBS_SBS_DBO.csv")
 
 #illumina output changed "_" to "-"
-metadata$Sample_ID <- gsub("_", "-", metadata$Sample_ID) 
+sample_metadata$sample_ID <- gsub("_", "-", sample_metadata$sample_ID)
 ```
+
+for now remove the SBS22 that were duplicated from the 20230423 miseq run from the sample metadata
+```{r}
+discard <- data.frame(project = c("SBS"), extraction_plate = c("16_2023"), seq_date = c(20240423))
+  
+sample_metadata <- sample_metadata %>%
+  anti_join(discard, by = c("project", "extraction_plate", "seq_date"))
+```
+
 
 add column to the ASV table that labels the sample type
 ```{r}
-asv_table_with_sample_type <- metadata %>%
-  dplyr::select(Sample_ID, sample_type, collection_year, project, extraction_date) %>%
-  left_join(asv_table, by = "Sample_ID")
+asv_table_with_sample_type <- sample_metadata %>%
+  dplyr::select(sample_ID, sample_type, collection_year, project) %>%
+  left_join(asv_table, by = "sample_ID")
 
 # make a variable for the first and last ASV column in the table
 asv_first <- which(colnames(asv_table_with_sample_type) == "ASV_0001")
@@ -71,10 +89,11 @@ let's start by visualizing the reads in the positive control samples
 ```{r}
 asv_table_with_sample_type %>%
   pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
-  filter(sample_type == "positive_control") %>%
-  ggplot(aes(x=Sample_ID, y=reads, fill=ASV)) +
-  geom_bar(stat = "identity") + 
-    theme_bw() +
+  filter(sample_type == "positive") %>%
+  ggplot(aes(x=sample_ID, y=reads, fill=ASV)) +
+  geom_bar(stat = "identity") +
+  facet_grid(project~collection_year, scales = "free_x") + 
+  theme_bw() +
   labs(
     y = "number of sequencing reads",
     x = "sample ID",
@@ -92,7 +111,7 @@ top asvs in positive controls
 ```{r}
 asvs_PC <- asv_table_with_sample_type %>%
   pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
-  filter(sample_type == "positive_control") %>%
+  filter(sample_type == "positive") %>%
   group_by(ASV) %>%
   summarise(total = sum(reads)) %>%
   arrange(desc(total))
@@ -100,8 +119,7 @@ asvs_PC <- asv_table_with_sample_type %>%
 head(asvs_PC, 6)
 ```
 
-
-okay, so ASV8 must be the sturgeon and very few reads from other ASVs showed up in the positive controls. little to no tag-jumping in this dataset. 
+okay, so ASV_0014 must be the sturgeon (and maybe ASV_0264?)
 
 ### extraction blanks 
 
@@ -110,8 +128,8 @@ let me look into the reads that got into the extraction blanks
 asv_table_with_sample_type %>%
   pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
   filter(sample_type == "extraction_blank") %>%
-  ggplot(aes(x=Sample_ID, y=reads, fill=ASV)) +
-  facet_grid(~extraction_date, scales = "free_x") + 
+  ggplot(aes(x=sample_ID, y=reads, fill=ASV)) +
+  facet_grid(project~collection_year, scales = "free_x") +  
   geom_bar(stat = "identity") + 
   theme_bw() +
   labs(
@@ -133,7 +151,7 @@ all extraction blanks associated with NBS samples, id's in the 600's are associa
 asvs_EC <- asv_table_with_sample_type %>%
   pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
   filter(sample_type == "extraction_blank") %>%
-  group_by(ASV, extraction_date) %>%
+  group_by(ASV, project, collection_year) %>%
   summarise(total = sum(reads)) %>%
   arrange(desc(total))
 
@@ -190,7 +208,7 @@ asv_table_with_sample_type %>%
   labs(
     y = "number of sequencing reads",
     x = "sample ID",
-    title = "ASV reads - pcr negatives") + 
+    title = "ASV reads - field negatives") + 
   theme(
     axis.text.x = element_text(angle = 90, hjust = 0.95),
     legend.text = element_text(size = 8),
@@ -219,6 +237,28 @@ head(asvs_FC, 10)
 ```
 
 eek. lots of reads in field blanks. especially from 2021 NBS. 
+
+quick look at field samples 
+```{r}
+asv_table_with_sample_type %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  filter(sample_type == "sample") %>%
+  ggplot(aes(x=Sample_ID, y=reads, fill=ASV)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(project~collection_year, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "ASV reads - field samples") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "none",
+    legend.title = element_blank()
+  )
+```
 
 
 # Now to the decontamination steps 
@@ -1037,6 +1077,42 @@ will need to think more about how to filter samples based on dissimilarity, ther
 
 # Some results of read decontamination  
 
+plot all field samples
+```{r}
+asv_table_filter4 %>%
+  filter(sample_type == "sample") %>%
+  ggplot(aes(x=Sample_ID, y=reads, fill=ASV)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(project.x~collection_year.x, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "ASV reads - field samples") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "none",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+asv_table_filter4 %>%
+  filter(sample_type == "sample") %>%
+  group_by(Sample_ID, project.x, collection_year.x) %>%
+  summarize(total_reads = sum(reads)) %>%
+  ungroup() %>%
+  group_by(project.x, collection_year.x) %>%
+    summarize(total_reads_mean = mean(total_reads),
+            total_reads_sd = sd(total_reads),
+            ci_lower = total_reads_mean - qt(0.975, df = n() - 1) * (total_reads_sd / sqrt(n())),
+            ci_upper = total_reads_mean + qt(0.975, df = n() - 1) * (total_reads_sd / sqrt(n())))
+```
+
+
+
 **NBS 2021 station 11 at 10m**
 ```{r}
 asv_table_filter4 %>%
@@ -1132,3 +1208,8 @@ asv_table_filter4 %>%
 ```
 
 done for now, but this data set will require more thoughtful clean-up. 
+
+```{r}
+#write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/asv_table.csv")
+```
+
