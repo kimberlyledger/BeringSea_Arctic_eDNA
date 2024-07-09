@@ -17,15 +17,16 @@ rename <- dplyr::rename
 
 load sample type and other library prep info
 ```{r}
-sample_metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/sample_names_NBS_SBS_DBO.csv")
+sample_metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_sample_names.csv")
 
 #illumina output changed "_" to "-"
 sample_metadata$sample_ID <- gsub("_", "-", sample_metadata$sample_ID) 
+sample_metadata$sample_ID_date <- gsub("_", "-", sample_metadata$sample_ID_date) 
 ```
 
 check sequence table outputs
 ```{r}
-asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake/filtered.seqTab.RDS") %>%
+asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqTab.RDS") %>%
   select(!Row.names)
 
 #transpose 
@@ -44,34 +45,22 @@ for (col in names(asv_table)) {
 }
 
 #make make sample ID a column 
-asv_table$sample_ID <- rownames(asv_table)
+asv_table$sample_ID_date <- rownames(asv_table)
 
 #rename the one sample that got the wrong ID in the sample sheet 
 asv_table <- asv_table %>%
-  mutate(sample_ID = ifelse(sample_ID == "e0683-A", "e00683-A", sample_ID)) %>%
-  mutate(sample_ID = ifelse(sample_ID == "e0683-B", "e00683-B", sample_ID)) %>%
-  mutate(sample_ID = ifelse(sample_ID == "e0683-C", "e00683-C", sample_ID))
+  mutate(sample_ID_date = ifelse(sample_ID_date == "e0683-A-20240423", "e00683-A-20240423", sample_ID_date)) %>%
+  mutate(sample_ID_date = ifelse(sample_ID_date == "e0683-B-20240423", "e00683-B-20240423", sample_ID_date)) %>%
+  mutate(sample_ID_date = ifelse(sample_ID_date == "e0683-C-20240423", "e00683-C-20240423", sample_ID_date))
 ```
 
-modify sample_metadata to get rid of the duplicate SBS samples that were combined in the ASV table from dadasnake
-```{r}
-sample_metadata <- sample_metadata %>%
-  select(extraction_ID:sample_ID) %>%
-  unique()
-
-#check 
-sample_metadata %>%
-  filter(project == "SBS") %>%
-  arrange(sample_ID)
-# yep just one entry per sample
-```
 
 add column to the ASV table that labels the sample type
 ```{r}
 asv_table_with_sample_type <- sample_metadata %>%
-  dplyr::select(sample_ID, sample_type, collection_year, project) %>%
-  left_join(asv_table, by = "sample_ID") %>%
-   unite(col = "project_year", project, collection_year, sep = "_", remove = F)
+  dplyr::select(sample_ID_date, sample_type, collection_year, project, seq_date) %>%
+  left_join(asv_table, by = "sample_ID_date") %>%
+  unite(col = "project_year", project, collection_year, sep = "_", remove = F)
 
 # make a variable for the first and last ASV column in the table
 asv_first <- which(colnames(asv_table_with_sample_type) == "ASV_0001")
@@ -79,16 +68,128 @@ asv_last <- ncol(asv_table_with_sample_type)
 ```
 
 
-# account for likely contaminates 
+# account for likely contaminants 
 
 - tag-jumping: this would be a run-specific process, so would need to separate the data by sequencing run. 
 - also when considering what's in the negative PCR controls, that should be done on by-run basis.
 - field negatives should be addressed on a project/year basis. 
 
-### Okay the SBS samples on multiple runs that were then combined during dadasnake is messing this up - let me rerun dadasnake.
+
+## Step 1. Account for tag-jumping by using the positive controls 
+
+subtract the proportion of reads that jumped into the positive control samples from each environmental sample 
+
+identify the maximum proportion of reads for each ASV found in the positive controls
+```{r}
+prop_asvs_in_positives_20240423 <- asv_table_with_sample_type %>%
+  filter(seq_date == "20240423") %>%
+  filter(sample_type == "positive") %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  group_by(sample_ID_date) %>%
+  mutate(TotalReadsPerSample = sum(reads)) %>%
+  mutate(Prop = reads/TotalReadsPerSample) %>%
+  group_by(ASV) %>%
+  summarise(max_prop = max(Prop)) %>%
+  arrange(desc(max_prop)) %>%
+  mutate(seq_date = 20240423)
+prop_asvs_in_positives_20240423
+```
+```{r}
+prop_asvs_in_positives_20240509 <- asv_table_with_sample_type %>%
+  filter(seq_date == "20240509") %>%
+  filter(sample_type == "positive") %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  group_by(sample_ID_date) %>%
+  mutate(TotalReadsPerSample = sum(reads)) %>%
+  mutate(Prop = reads/TotalReadsPerSample) %>%
+  group_by(ASV) %>%
+  summarise(max_prop = max(Prop)) %>%
+  arrange(desc(max_prop)) %>%
+  mutate(seq_date = 20240509)
+prop_asvs_in_positives_20240509
+```
+
+```{r}
+prop_asvs_in_positives_20240611 <- asv_table_with_sample_type %>%
+  filter(seq_date == "20240611") %>%
+  filter(sample_type == "positive") %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  group_by(sample_ID_date) %>%
+  mutate(TotalReadsPerSample = sum(reads)) %>%
+  mutate(Prop = reads/TotalReadsPerSample) %>%
+  group_by(ASV) %>%
+  summarise(max_prop = max(Prop)) %>%
+  arrange(desc(max_prop)) %>%
+  mutate(seq_date = 20240611)
+prop_asvs_in_positives_20240611
+```
+
+```{r}
+prop_asvs_in_positives_20240613 <- asv_table_with_sample_type %>%
+  filter(seq_date == "20240613") %>%
+  filter(sample_type == "positive") %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  group_by(sample_ID_date) %>%
+  mutate(TotalReadsPerSample = sum(reads)) %>%
+  mutate(Prop = reads/TotalReadsPerSample) %>%
+  group_by(ASV) %>%
+  summarise(max_prop = max(Prop)) %>%
+  arrange(desc(max_prop)) %>%
+  mutate(seq_date = 20240613)
+prop_asvs_in_positives_20240613
+```
+
+combine these tables
+```{r}
+prop_asvs_in_positives <- prop_asvs_in_positives_20240423 %>%
+  bind_rows(prop_asvs_in_positives_20240509) %>%
+  bind_rows(prop_asvs_in_positives_20240611) %>%
+  bind_rows(prop_asvs_in_positives_20240613)
+```
 
 
-## Step 1. Account for contaminants in positive and negative controls 
+
+subtract the max proportion of tag-jumped reads for each ASV from samples
+```{r}
+indexhop_table <- asv_table_with_sample_type %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  group_by(sample_ID_date) %>%
+  mutate(TotalReadsPerSample = sum(reads, na.rm = T)) %>%
+  left_join(prop_asvs_in_positives, by = c("ASV", "seq_date")) %>%
+  mutate(IndexHoppingReads = TotalReadsPerSample*max_prop) %>%
+  mutate(reads_IndexHop_removed = reads - IndexHoppingReads) %>%
+  mutate(reads_IndexHop_removed = if_else(reads_IndexHop_removed < 0, 0, reads_IndexHop_removed))
+head(indexhop_table)
+```
+
+clean up the table by removing columns no longer needed 
+```{r}
+asv_table_filter1 <- indexhop_table %>%
+  dplyr::select(sample_ID_date, sample_type, project_year, collection_year, project, seq_date, ASV, reads_IndexHop_removed) %>%
+  dplyr::rename(reads = reads_IndexHop_removed)
+```
+
+this is a summary of the number of reads removed by ASV and sample_ID
+```{r}
+decontaminated_1 <- indexhop_table %>%
+  dplyr::select(sample_ID_date, sample_type, project_year, collection_year, project, seq_date, ASV, IndexHoppingReads) %>%
+  filter(sample_type == "sample") %>%
+  group_by(seq_date, ASV) %>%
+  summarise(mean_reads = mean(IndexHoppingReads),
+            reads_q.05 = quantile(IndexHoppingReads, probs=0.05),
+            median_q.5 = median(IndexHoppingReads),
+            reads_q.95 = quantile(IndexHoppingReads, probs=0.95)) %>%
+  filter(mean_reads > 0) %>%
+  filter(ASV != "ASV_0014")  ## remove the PC/sturgeon ASV
+decontaminated_1  
+```
+
+consult the taxonomic id's of these ASVs to make sure this all makes sense to do. 
+
+
+### PAUSING HERE TO WORK WITH TAXONOMIC ID FOR NOW 
+
+## Step 2. Account for contaminants in positive and negative controls 
 
 next we will remove ASVs that only occur in controls and not in environmental samples. 
 

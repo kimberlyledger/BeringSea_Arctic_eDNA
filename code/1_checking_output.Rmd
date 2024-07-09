@@ -17,37 +17,37 @@ rename <- dplyr::rename
 
 load table with dada2 reporting - this table includes the number of reads for each samples thru the filtering steps
 ```{r}
-report <- read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake/post_finalNumbers_perSample.tsv", header = TRUE, sep = "\t")
+report <- read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/post_finalNumbers_perSample.tsv", header = TRUE, sep = "\t")
 ```
-*note: the subset of SBS samples that were sequenced twice are combined in this output
 
 one sample was mislabeled in the sample sheet to fixing that here
 ```{r}
 report <- report %>%
-  mutate(sample = ifelse(sample == "e0683-A", "e00683-A", sample)) %>%
-  mutate(sample = ifelse(sample == "e0683-B", "e00683-B", sample)) %>%
-  mutate(sample = ifelse(sample == "e0683-C", "e00683-C", sample))        
+  mutate(sample = ifelse(sample == "e0683-A-20240423", "e00683-A-20240423", sample)) %>%
+  mutate(sample = ifelse(sample == "e0683-B-20240423", "e00683-B-20240423", sample)) %>%
+  mutate(sample = ifelse(sample == "e0683-C-20240423", "e00683-C-20240423", sample))
 ```
 
 load sample type and other library prep info
 ```{r}
-sample_metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/sample_names_NBS_SBS_DBO.csv")
+sample_metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_sample_names.csv")
 
 #illumina output changed "_" to "-"
 sample_metadata$sample_ID <- gsub("_", "-", sample_metadata$sample_ID) 
+sample_metadata$sample_ID_date <- gsub("_", "-", sample_metadata$sample_ID_date) 
 ```
 
 join the report and metadata
 ```{r}
 report_meta <- report %>%
-  rename(sample_ID = sample) %>%
+  rename(sample_ID_date = sample) %>%
   left_join(sample_metadata)
 ```
 
 take a course look at the report by project, year, sample_type
 ```{r}
 report_table <- report_meta %>%
-  group_by(project, collection_year, run, sample_type) %>%
+  group_by(project, collection_year, seq_date, sample_type) %>%
   summarise(mean_reads = mean(reads_tax.length_filtered),
             reads_q.05 = quantile(reads_tax.length_filtered, probs=0.05),
             median_q.5 = median(reads_tax.length_filtered),
@@ -56,7 +56,7 @@ report_table <- report_meta %>%
 report_table
 ```
 
-make a quick visual of this 
+make a quick visual of this - combining SBS22 duplicates in this figure
 ```{r}
 report_table %>%
   unite(col = "project_year", project, collection_year, sep = "_", remove = F) %>%
@@ -82,15 +82,9 @@ from this i need to:
 3) i already knew that NBS21 field blanks have plenty of contamination
 4) compare the SBS22 samples including in two different library preps
 
-
-
-### starting with a closer look into DBO samples
-
-before getting concerned about sequences in blanks, let's check if there are fish sequences or not by blasting ASVs for taxonomic identification 
-
 check sequence table outputs
 ```{r}
-asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake/filtered.seqTab.RDS") %>%
+asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqTab.RDS") %>%
   select(!Row.names)
 
 #transpose 
@@ -109,20 +103,20 @@ for (col in names(asv_table)) {
 }
 
 #make make sample ID a column 
-asv_table$sample_ID <- rownames(asv_table)
+asv_table$sample_ID_date <- rownames(asv_table)
 
 #rename the one sample that got the wrong ID in the sample sheet 
 asv_table <- asv_table %>%
-  mutate(sample_ID = ifelse(sample_ID == "e0683-A", "e00683-A", sample_ID)) %>%
-  mutate(sample_ID = ifelse(sample_ID == "e0683-B", "e00683-B", sample_ID)) %>%
-  mutate(sample_ID = ifelse(sample_ID == "e0683-C", "e00683-C", sample_ID))
+  mutate(sample_ID_date = ifelse(sample_ID_date == "e0683-A-20240423", "e00683-A-20240423", sample_ID_date)) %>%
+  mutate(sample_ID_date = ifelse(sample_ID_date == "e0683-B-20240423", "e00683-B-20240423", sample_ID_date)) %>%
+  mutate(sample_ID_date = ifelse(sample_ID_date == "e0683-C-20240423", "e00683-C-20240423", sample_ID_date))
 ```
 
 add column to the ASV table that labels the sample type
 ```{r}
 asv_table_with_sample_type <- sample_metadata %>%
-  dplyr::select(sample_ID, sample_type, collection_year, project) %>%
-  left_join(asv_table, by = "sample_ID") %>%
+  dplyr::select(sample_ID_date, sample_type, collection_year, project) %>%
+  left_join(asv_table, by = "sample_ID_date") %>%
    unite(col = "project_year", project, collection_year, sep = "_", remove = F)
 
 # make a variable for the first and last ASV column in the table
@@ -130,13 +124,14 @@ asv_first <- which(colnames(asv_table_with_sample_type) == "ASV_0001")
 asv_last <- ncol(asv_table_with_sample_type)
 ```
 
+make some plots to visualize results. 
 
 let me look into the reads that got into the pcr blanks
 ```{r}
 asv_table_with_sample_type %>%
   pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
   filter(sample_type == "pcr_blank") %>%
-  ggplot(aes(x=sample_ID, y=reads, fill=ASV)) +
+  ggplot(aes(x=sample_ID_date, y=reads, fill=ASV)) +
   geom_bar(stat = "identity") + 
   theme_bw() +
   facet_grid(~project_year, scales = "free_x") + 

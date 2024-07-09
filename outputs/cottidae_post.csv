@@ -1,0 +1,41 @@
+qseqid,taxon,taxonomic_level,species,genus,family,order,class,phylum,kingdom,seq_percID,id_rank,top_perc,diff
+ASV_0037,Myoxocephalus 1,genus,Myoxocephalus quadricornis,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0037,Myoxocephalus 1,genus,Myoxocephalus scorpius,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0242,Myoxocephalus 1,genus,Myoxocephalus quadricornis,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0242,Myoxocephalus 1,genus,Myoxocephalus scorpius,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0026,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0026,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0026,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0103,Oligocottus,genus,Oligocottus maculosus,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0103,Oligocottus,genus,Oligocottus snyderi,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0134,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0134,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0134,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0148,Hemilepidotus,genus,Hemilepidotus jordani,Hemilepidotus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0148,Hemilepidotus,genus,Hemilepidotus papilio,Hemilepidotus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0171,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0171,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0171,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0259,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0259,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0259,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0322,Oligocottus,genus,Oligocottus maculosus,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0322,Oligocottus,genus,Oligocottus snyderi,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0358,Oligocottus,genus,Oligocottus maculosus,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0358,Oligocottus,genus,Oligocottus snyderi,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0610,Oligocottus,genus,Oligocottus maculosus,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0610,Oligocottus,genus,Oligocottus snyderi,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0844,Hemilepidotus,genus,Hemilepidotus jordani,Hemilepidotus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0844,Hemilepidotus,genus,Hemilepidotus papilio,Hemilepidotus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0936,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0936,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0936,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1039,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1039,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1039,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1107,Artediellus scaber,species,Artediellus scaber,Artediellus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_1132,Myoxocephalus 2,genus,Myoxocephalus jaok,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1132,Myoxocephalus 2,genus,Myoxocephalus polyacanthocephalus,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1132,Myoxocephalus 2,genus,Myoxocephalus stelleri,Myoxocephalus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1186,Oligocottus,genus,Oligocottus maculosus,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.81,1,98.81,0
+ASV_1186,Oligocottus,genus,Oligocottus snyderi,Oligocottus,Cottidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.81,1,98.81,0

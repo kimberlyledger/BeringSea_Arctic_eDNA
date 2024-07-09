@@ -18,18 +18,9 @@ rename <- dplyr::rename
 
 ## load output from taxonkit 
 ```{r load-output-from-taxonkit}
-taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/blastn/blastn_taxlineage.txt", header = FALSE, na.strings=c(""," ","NA"))
+taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/blastn_taxlineage.txt", header = FALSE, na.strings=c(""," ","NA"))
 
 head(taxonomy)
-```
-
-## filter taxonomy by the ASVs that made it through data decontamination - NOT DOING THIS - keeping all ASVs for initial analysis
-```{r}
-#asv_table <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/asv_table.csv") %>%
-#  select(!X) 
-
-#taxonomy <- taxonomy %>%
-#  filter(V1 %in% asv_table$ASV)
 ```
 
 
@@ -93,9 +84,6 @@ seq_id_diff <- taxon_df %>%
        mutate(top_perc = max(seq_percID)) %>% # designate the highest % id for the best taxonomic hit in each sequence (in some, but not all cases, this is 100%)   %>%
       mutate(diff = top_perc - seq_percID) %>% # calculate the difference between the % identity of the top hit and each subsequent taxonomic hit
         arrange(diff)
-
-seq_id_diff %>%
-  filter(diff > 0)
 ```
 
 Now you have the single best entry for each species for each sequence ranked and with the difference between the first and second ranked entries calculated.
@@ -284,6 +272,7 @@ to_check_range <- sorted_tax_df %>%
 ```
 
 ## check ranges for species using rfishbase 
+## also at this step, check 
 ```{r}
 #library(remotes)
 #remotes::install_github("ropensci/rfishbase")
@@ -292,11 +281,20 @@ library(rfishbase)
 #one-time download of all fishbase tables... this takes a bit 
 fb_import()
 
-#make a spp list 
-spp_names <- to_check_range$species
+#first, validate species names using rfishbase synonyms
+spp_df <- synonyms(to_check_range$species)
+
+syn <- spp_df %>% 
+  filter(Status == "synonym")
+  
+to_check_range <- to_check_range %>% 
+  mutate(validated_name = ifelse(species %in% syn$synonym, syn$Species, species))
+    
+to_check_range %>%
+  filter(species != validated_name)
 
 #get distribution info 
-spp_distribution <- distribution(spp_names) %>%
+spp_distribution <- distribution(to_check_range$validated_name) %>%
   select(Species, FAO) %>%
   unique()
 
@@ -316,37 +314,72 @@ range_na <- spp_range %>%
   filter(is.na(in_range))
 ```
 
+When a valid name was not found, the presence of a species in the study area was checked using the GBIF database (https://www.gbif.org/).
+
 # some species do not have range info - manually determine if these species should be considered in range
 ```{r}
 range_na <- range_na %>%
   mutate(in_range = ifelse(Species == "Ammodytes japonicus", "no", in_range),
-         in_range = ifelse(Species == "Cleisthenes herzensteini", "no", in_range),
-         in_range = ifelse(Species == "Gadus ogac", "no", in_range),
-         in_range = ifelse(Species == "Myoxocephalus aenaeas", "no", in_range),
-         in_range = ifelse(Species == "Kareius bicoloratus", "no", in_range),
-         in_range = ifelse(Species == "Cottocomephorus grewingki", "no", in_range),
-         in_range = ifelse(Species == "Sebastes cheni", "no", in_range),
-         in_range = ifelse(Species == "Embassichthys bathybius", "yes", in_range),    ##new name is Microstomus bathybius
-         in_range = ifelse(Species == "Pungitius kaibarae", "no", in_range),
-         in_range = ifelse(Species == "Ulcina olrikii", "yes", in_range),  ### arctic alligatorfish - Aspidophoroides olrikii
-         in_range = ifelse(Species == "Polypera greeni", "yes", in_range))  ## Liparis greeni
+         #in_range = ifelse(Species == "Cleisthenes herzensteini", "no", in_range),
+         #in_range = ifelse(Species == "Gadus ogac", "no", in_range),
+         #in_range = ifelse(Species == "Myoxocephalus aenaeas", "no", in_range),
+         #in_range = ifelse(Species == "Kareius bicoloratus", "no", in_range),
+         #in_range = ifelse(Species == "Cottocomephorus grewingki", "no", in_range),
+         in_range = ifelse(Species == "Sebastes cheni", "no", in_range)) #,
+         #in_range = ifelse(Species == "Embassichthys bathybius", "yes", in_range),    ##new name is Microstomus bathybius
+         #in_range = ifelse(Species == "Pungitius kaibarae", "no", in_range),
+         #in_range = ifelse(Species == "Ulcina olrikii", "yes", in_range),  ### arctic alligatorfish - Aspidophoroides olrikii
+         #in_range = ifelse(Species == "Polypera greeni", "yes", in_range))  ## Liparis greeni
 ```
 
+
+
+- in addition to fishbase distributions, these citations may help: https://www.marinespecies.org/arms/aphia.php?p=taxdetails%26id=10194
+and exclude Atlantic Arctic species: Mecklenburg, C. W., Lynghammar, A., Johannesen, E., Byrkjedal, I., Christiansen, J. S., Dolgov, A. V., Karamushko, O. V., Mecklenburg, T. A., Møller, P. R., Steinke, D., & Wienerroither, R. M. (2018). Marine fishes of the Arctic region. Conservation of Arctic Flora and Fauna.
+
 ## manually change a few species that are not really in the range.. and combine dataframes
+
+--- come back to this step and remove more Atlantic Arctic species. 
 ```{r}
+atlantic_arctic_spp <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/AtlanticArctic_SpeciesList.csv")
 
 in_range <- spp_range %>%
-  mutate(in_range = ifelse(Species == "Gadus morhua", "no", in_range)) %>%
-  filter(in_range == "yes")
+  filter(in_range == "yes") %>%
+  filter(!Species %in% atlantic_arctic_spp$Name)
 
-also_in_range <- range_na %>%
-  filter(in_range == "yes")
+#also_in_range <- range_na %>%
+#  filter(in_range == "yes")
 
 all_in_range <- in_range %>%
-  bind_rows(also_in_range) %>%
+  #bind_rows(also_in_range) %>%
   bind_rows(not_Actinopteri_keepers)
 
-sorted_tax_df <- sorted_tax_df %>%
+## what species are in range but used a synonym? 
+temp <- all_in_range %>%
+  filter(Species %in% syn$Species)
+temp 
+
+#what names were used in the tax_df? 
+syn %>%
+  filter(Species %in% temp$Species)
+
+#rename these in the sorted_tax_df
+temp2 <- sorted_tax_df %>%
+  mutate(species = ifelse(species == "Gadus ogac", "Gadus macrocephalus", species),
+         taxon = ifelse(taxon == "Gadus ogac", "Gadus macrocephalus", taxon),
+         species =  ifelse(species == "Embassichthys bathybius", "Microstomus bathybius", species),
+         taxon = ifelse(taxon == "Embassichthys bathybius", "Microstomus bathybius", taxon),
+         genus = ifelse(genus == "Embassichthys", "Microstomus", genus),
+         species = ifelse(species == "Polypera greeni", "Liparis greeni", species),
+         taxon = ifelse(taxon == "Polypera greeni", "Liparis greeni", taxon),
+         genus = ifelse(genus == "Polypera", "Liparis", genus))
+
+sorted_tax_df %>%
+  filter(species == "Polypera greeni")
+temp2 %>%
+  filter(species == "Liparis greeni")
+
+tax_df_2 <- temp2 %>%
   filter(species %in% all_in_range$Species)
 ```
 
@@ -355,11 +388,11 @@ okay, now that out-of-range species have been removed, i need to remake the taxo
 ## so now determine whether ASVs should be assigned to species genus, family, order, etc. 
 ```{r}
 #remove taxon_level and taxon designations
-sorted_tax_df <- sorted_tax_df %>%
+tax_df_2 <- tax_df_2 %>%
   select(!taxonomic_level) %>%
   select(!taxon)
 
-singletons <- sorted_tax_df %>%
+singletons <- tax_df_2 %>%
   select(qseqid) %>%
   group_by(qseqid) %>%
   tally() %>%
@@ -367,14 +400,14 @@ singletons <- sorted_tax_df %>%
 
 # these are the seqs that now have only a single match
 singleton_df <- singletons %>%
-  left_join(sorted_tax_df) %>%
+  left_join(tax_df_2) %>%
   select(-n) %>%
   mutate(taxonomic_level = "species") %>%
   mutate(taxon = species)
 
 ## Genus-level matches
 # remove the singletons from the bigger df 
-single_genus <- sorted_tax_df %>%
+single_genus <- tax_df_2 %>%
   anti_join(singleton_df) %>% # at best, these should be genus-level matches
   group_by(qseqid, genus) %>%
   tally() %>%
@@ -383,12 +416,12 @@ single_genus <- sorted_tax_df %>%
   tally() %>%
   filter(n == 1) %>% # seqs that match a single genus
   select(-n) %>%
-  left_join(., sorted_tax_df) %>%
+  left_join(., tax_df_2) %>%
   mutate(taxonomic_level = "genus") %>%
   mutate(taxon = genus)
   
 ## Family-level matches
-single_family <- sorted_tax_df %>%
+single_family <- tax_df_2 %>%
   anti_join(singleton_df)%>%
   anti_join(single_genus) %>%
   group_by(qseqid, family) %>%
@@ -398,13 +431,13 @@ single_family <- sorted_tax_df %>%
   tally() %>%
   filter(n == 1) %>% # seqs that match a single family
   select(-n) %>%
-  left_join(., sorted_tax_df) %>%
+  left_join(., tax_df_2) %>%
   mutate(taxonomic_level = "family") %>%
   mutate(taxon = family)
 
 
 ## Order-level matches
-single_order <- sorted_tax_df %>%
+single_order <- tax_df_2 %>%
   anti_join(singleton_df)%>%
   anti_join(single_genus) %>%
   anti_join(single_family) %>%
@@ -415,13 +448,12 @@ single_order <- sorted_tax_df %>%
   tally() %>%
   filter(n == 1) %>% # seqs that match a single order
   select(-n) %>%
-  left_join(., sorted_tax_df) %>%
+  left_join(., tax_df_2) %>%
   mutate(taxonomic_level = "order") %>%
   mutate(taxon = order)
 
-
 ## Class-level matches
-single_class <- sorted_tax_df %>%
+single_class <- tax_df_2 %>%
   anti_join(singleton_df)%>%
   anti_join(single_genus) %>%
   anti_join(single_family) %>%
@@ -433,13 +465,12 @@ single_class <- sorted_tax_df %>%
   tally() %>% 
   filter(n == 1) %>% # seqs that match a single class
   select(-n) %>%
-  left_join(., sorted_tax_df) %>%
+  left_join(., tax_df_2) %>%
   mutate(taxonomic_level = "class") %>%
   mutate(taxon = class)
 
-
 ## Phylum-level matches
-single_phylum <- sorted_tax_df %>%
+single_phylum <- tax_df_2 %>%
   anti_join(singleton_df)%>%
   anti_join(single_genus) %>%
   anti_join(single_family) %>%
@@ -452,12 +483,12 @@ single_phylum <- sorted_tax_df %>%
   tally() %>% 
   filter(n == 1) %>% # seqs that match a single phylum
   select(-n) %>%
-  left_join(., sorted_tax_df) %>%
+  left_join(., tax_df_2) %>%
   mutate(taxonomic_level = "phylum") %>%
   mutate(taxon = phylum)
 
 # Kingdom level matches
-single_kingdom <- sorted_tax_df %>%
+single_kingdom <- tax_df_2 %>%
   anti_join(singleton_df)%>%
   anti_join(single_genus) %>%
   anti_join(single_family) %>%
@@ -470,7 +501,7 @@ single_kingdom <- sorted_tax_df %>%
   tally() %>% 
   filter(n == 1) %>% # seqs that match a single kingdom
   select(-n) %>%
-  left_join(., sorted_tax_df) %>%
+  left_join(., tax_df_2) %>%
   mutate(taxonomic_level = "kingdom") %>%
   mutate(taxon = kingdom)
 ```
@@ -485,27 +516,11 @@ single_spp <- singleton_df
 filtered_tax_df <- bind_rows(single_kingdom, single_phylum, single_class, single_order, single_family, single_genus, single_spp)
 ```
 
-## some more manual taxonomy checks..
-taxon = Agonidae (family) - this is most likely Sarritor frenatus (Sawback poacher)
-taxon = Ammodytes (genus) - Ammodytes personatus or Ammodytes hexapterus
-taxon = Anoplarchus (genus) - Anoplarchus insignis or Anoplarchus purpurescens
-taxon = Cottidae (family) - Myoxocephalus or Microcottus
-ASV_0718 = Aptocyclus ventricosus (species)
-ASV_0222 = Hemilepidotus hemilepidotus - might just want to lump with Hemilepidotus (genus)
-
-okay so there are taxon that could be more species, instead of saying genus we could go with the two species it might be? 
-and there are also some taxon at species level, that see more appropriate to lump with the next higher level... 
-
-taxon = Perciformes (family) - this is one of two species (Leptoclinus maculatus or Zaprora silenus)
-
-what's our interest in Pleuronectidae - lots of ASVs - try to tease apart?? 
-
-need to rename Polypera greeni to be Liparis greeni 
-
-Salvelinus - arctic char or dolly varden? 
-only one asv to Sebastidae - just lump with Sebastes (genus)? 
-
-
+just so i can pick up on this without having to rerun all the code, let me export the filtered_tax_df
+```{r}
+#write.csv(filtered_tax_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/tax_df_20240703.csv")
+```
+ 
 ## output a list of all the Gadidae ASVs
 ```{r}
 gadidae <- filtered_tax_df %>%
@@ -528,7 +543,7 @@ salmon <- filtered_tax_df %>%
 library(Biostrings)
 
 # Define the input and output file paths
-fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake/filtered.seqs.fasta"
+fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqs.fasta"
 output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae.fasta"
 
 # Read the FASTA file
@@ -541,7 +556,7 @@ asv_headers <- gadidae$qseqid  #
 gadidae_seqs <- fasta_seqs[names(fasta_seqs) %in% asv_headers]
 
 # Write the filtered sequences to a new FASTA file
-writeXStringSet(gadidae_seqs, filepath = output_file)
+#writeXStringSet(gadidae_seqs, filepath = output_file)
 ```
 
 ## filter fasta to be just the gadids 
@@ -550,7 +565,7 @@ writeXStringSet(gadidae_seqs, filepath = output_file)
 library(Biostrings)
 
 # Define the input and output file paths
-fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake/filtered.seqs.fasta"
+fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqs.fasta"
 output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/onchorhynchus.fasta"
 
 # Read the FASTA file
@@ -563,291 +578,160 @@ asv_headers <- salmon$qseqid
 salmon_seqs <- fasta_seqs[names(fasta_seqs) %in% asv_headers]
 
 # Write the filtered sequences to a new FASTA file
-writeXStringSet(salmon_seqs, filepath = output_file)
+#writeXStringSet(salmon_seqs, filepath = output_file)
 ```
 
-just so i can pick up on this without having to rerun all the code, let me export the filtered_tax_df
+
+okay, so i cleaned up reference seq and re-blast the gadidae and salmon reads. let me compare the assignments 
+
 ```{r}
-#write.csv(filtered_tax_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/tax_df_20240702.csv")
+salmon_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/oncorhynchus_asv_id.csv") %>%
+  select(!X)
+
+salmon_original <- filtered_tax_df %>%
+  filter(genus == "Oncorhynchus") %>%
+  select(qseqid, taxon, taxonomic_level) %>%
+  unique()
+
+salmon_join <- salmon_original %>%
+  left_join(salmon_custom, by = "qseqid") %>%
+  arrange(qseqid)
+```
+
+okay, so the cleaned up database doesn't get everything to species, but it surely does better. 
+
+```{r}
+gadidae_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_asv_id.csv") %>%
+  select(!X) %>%
+  mutate(taxon = ifelse(taxon == "Gadid", "Gadus", taxon))  ### whoops but gadid instead of gadus in table
+
+gadidae_original <- filtered_tax_df %>%
+  filter(family == "Gadidae") %>%
+  select(qseqid, taxon, taxonomic_level) %>%
+  unique()
+
+gadidae_join <- gadidae_original %>%
+  left_join(gadidae_custom, by = "qseqid") %>%
+  arrange(qseqid)
 ```
 
 
+for this updated version of taxonomic ID i will go with the blast results using the custom db
+```{r}
+gad_sal_tax_df <- gadidae_custom %>%
+  bind_rows(salmon_custom)
+```
+
+now i still need to consider the rest of the IDs 
+
+these are the single species (excluding gadidae and oncorhynchus)
+```{r}
+single_species <- filtered_tax_df %>%
+  filter(taxonomic_level == "species") %>%
+  filter(family != "Gadidae") %>%
+  filter(genus != "Oncorhynchus")
+```
+
+
+for a few groups, let's just consider the species hits that are < 0.5% of the best match 
+```{r}
+sebastidae <- filtered_tax_df %>%
+  filter(taxonomic_level != "species")%>%
+  filter(family == "Sebastidae") %>%
+  filter(diff < 0.5)
+
+#export to make custom groups 
+write.csv(sebastidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/sebastidae_pre.csv", row.names = F)
+```
+
+```{r}
+pleuronectidae <- filtered_tax_df %>%
+  filter(taxonomic_level != "species")%>%
+  filter(family == "Pleuronectidae") %>%
+  filter(diff < 0.5)
+
+#export to make custom groups 
+write.csv(pleuronectidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/pleuronectidae_pre.csv", row.names = F)
+```
+
+```{r}
+cottidae <- filtered_tax_df %>%
+  filter(taxonomic_level != "species")%>%
+  filter(family == "Cottidae") %>%
+  filter(diff < 0.5)
+
+#export to make custom groups 
+write.csv(cottidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/cottidae_pre.csv", row.names = F)
+```
+
+okay, now just need to check out the missing tax ids 
+
+```{r}
+remaining <- filtered_tax_df %>%
+  filter(taxonomic_level != "species") %>%
+  filter(family != "Gadidae") %>%
+  filter(genus != "Oncorhynchus") %>%
+  filter(family != "Sebastidae") %>%
+  filter(family != "Pleuronectidae") %>%
+  filter(family != "Cottidae")
+
+#export for custom grouping 
+write.csv(remaining, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/remaining_pre.csv", row.names = F)
+```
+
+
+read back in sebastidae, pleuro, and cottidae
+```{r}
+sebastidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/sebastidae_post.csv")
+pleuronectidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/pleuronectidae_post.csv")
+cottidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/cottidae_post.csv")
+remaining_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/remaining_post.csv")
+```
+
+
+add the single species and the families back to the final tax df 
+```{r}
+final_tax_df <- single_species %>%
+  bind_rows(sebastidae_post) %>%
+  bind_rows(pleuronectidae_post) %>%
+  bind_rows(cottidae_post) %>%
+  bind_rows(remaining_post) %>%
+  select(qseqid, taxon, taxonomic_level) %>%
+  bind_rows(gad_sal_tax_df) %>%
+  unique()
+```
+
+double check i didn't forget any ASVs in this process
+```{r}
+filtered_unique <- filtered_tax_df %>%
+  select(qseqid) %>%
+  unique() 
+
+# Check if all elements in table1$qseqid are in table2$qseq
+match <- all(filtered_unique$qseqid %in% final_tax_df$qseqid)
+
+# Print result
+if (match) {
+  print("All rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
+} else {
+  print("Not all rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
+}
+```
 
 ## Create output taxonomy data frames
 ```{r}
-uncollapsed_taxonomy <- filtered_tax_df %>%
-  select(-top_perc, -id_rank) %>%
-  unique() %>%
-  arrange(qseqid)
-
 # and then collapse that down to just a single taxon per ASV
-collapsed_taxonomy <- uncollapsed_taxonomy %>%
-  select(qseqid, taxon, taxonomic_level) %>%
-  unique() %>%
+final_tax_df <- final_tax_df %>%
   rename(ASV = qseqid)
 ```
 
 
 ```{r}
-write.csv(collapsed_taxonomy, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/collapsed_tax_20240625.csv")
+#write.csv(final_tax_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240709.csv")
 ```
 
 how many unique taxa? 
 ```{r}
-length(unique(collapsed_taxonomy$taxon))
-unique(collapsed_taxonomy$taxon)
+length(unique(final_tax_df$taxon))
+unique(final_tax_df$taxon)
 ```
-
-
-okay, i also want to try the taxonomic assignment of the 12S expanded db.  
-
-i ran blastn on the .fasta output of dadasnake  (/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/dadasnake) ([kimberly.ledger@akc0ss-vu-134 dadasnake]$ nohup blastn -db /genetics/edna/mifishdb/mifish_expanded_db -query filtered.seqs.fasta -perc_identity 96 -qcov_hsp_perc 100 -num_threads 10 -out /home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/12S_expanded/blastnresults_out_fmt6 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids' ) 
-
-I also uploaded the taxonomy associated with the rCRUX database to the VM: C:\Users\kimberly.ledger>scp C:\Users\kimberly.ledger\Desktop\12S_expanded.tar\12S_expanded\12S_expanded\derep_and_clean_db\12S_expanded_derep_and_clean_taxonomy.txt kimberly.ledger@161.55.97.134:/home/kimberly.ledger/AFSC_eDNA/rCRUX
-
-load data 
-```{r}
-library(tidyverse)
-
-## taxonomy 
-tax <- read.delim("/home/kimberly.ledger/AFSC_eDNA/rCRUX/12S_expanded_derep_and_clean_taxonomy.txt", header = FALSE, na.strings=c(""," ","NA")) %>%
-  separate(V2, into=c("kingdom", "phylum", "class", "order", "family", "genus", "species"), sep = ";") %>%
-  rename(accession=V1)
-
-## blast output 
-blast <- read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/12S_expanded/blastnresults_out_fmt6", header = FALSE, na.strings=c(""," ","NA")) %>%
-  select(-V5, -V6, -V7, -V8, -V9, -V10, -V11, -V12, -V13, -V14) %>%  #remove unnecessary columns
-  rename(ASV=V1, accession=V2, pident=V3, length=V4) %>% #rename headers
-  filter(length > 100) #%>% # make sure all retained matches are >100 bp
-```
-
-join taxonomy to blast output 
-```{r}
-taxon_df <- blast %>%
-  left_join(tax, by = "accession")
-```
-
-for now i will just disregard any ASV without at least one >98% match 
-```{r}
-taxon_df <- taxon_df %>%
-  filter(pident >= 98)
-```
-
-are there any ASVs are unambiguously a single species
-```{r}
-single_spp_seqs <- taxon_df %>% 
-  group_by(ASV) %>%
-  add_tally(name = "n_taxa") %>%
-  filter(n_taxa == 1)
-```
-
-okay, there are quite a few (at least compared to when i used blast on the entire ncbi database previously, but many of these are for ASVs with high ID (i.e. low numbers of reads in the dataset overall, and likely ones removed during decontamination?)
-
-now remove the single-species seqs from the dataframe and then rank the hits by % identity for the remaining seqs
-```{r}
-seq_id_diff <- taxon_df %>%
-  anti_join(., single_spp_seqs) %>%  ## comment out this line if there are no single species ASVs
-  select(-length) %>%
-  group_by(ASV, species, genus, family, order, class, phylum, kingdom) %>%
-    mutate(seq_percID = max(pident)) %>%
-    group_by(ASV, species, genus, family, order, class, phylum, kingdom, seq_percID) %>%
-  summarise(max(seq_percID)) %>% # take just the top hit for each taxon (for each sequence)
-  select(-`max(seq_percID)`) %>%
-  ungroup() %>%
-  group_by(ASV) %>%
-      mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
-       mutate(top_perc = max(seq_percID)) %>% # designate the highest % id for the best taxonomic hit in each sequence (in some, but not all cases, this is 100%)   
-      mutate(diff = top_perc - seq_percID) %>% # calculate the difference between the % identity of the top hit and each subsequent taxonomic hit
-        arrange(diff)
-```
-
-Now you have the single best entry for each species for each sequence ranked and with the difference between the first and second ranked entries calculated.
-
-For sequences with multiple top hits, where the difference between ranked taxa = 0, you will end up defaulting to genus- or family-level ID. We'll do the same for any sequences where the difference betweeen the first and second ranked taxa is < 0.5% (i.e. less one basepair difference).
-
-## Figure out which differences are > 1% and eliminate those first
-```{r}
-# filter out any taxa that are 0.5% less matching identity than the top taxonomic hit for a given sequence
-to_remove_low_perc_hits <- seq_id_diff %>%
-  ungroup() %>%
-  group_by(ASV) %>%
-  filter(diff > 1)
-
-keepers <- seq_id_diff %>%
-  anti_join(to_remove_low_perc_hits) %>%
-  filter(kingdom != "NA")                  ### also remove cases where there is no taxonomic information 
-```
-
-## so now determine whether ASVs should be assigned to genus, family, order, etc. 
-```{r}
-singletons <- keepers %>%
-  select(ASV) %>%
-  tally() %>%
-  filter(n == 1)
-
-# these are the seqs that now have only a single match - though not all are SPECIES level assignments 
-singleton_df <- singletons %>%
-  left_join(keepers) %>%
-  select(-n) %>%
-  bind_rows(single_spp_seqs) %>% # combine the single spp data
-  mutate(taxonomic_level = ifelse(species != "NA", "species", NA),
-         taxonomic_level = ifelse(species == "NA", "genus", taxonomic_level),
-         taxonomic_level = ifelse(genus == "NA", "family", taxonomic_level)) 
-
-# now need to deal with ASVs that have more than one match 
-# i want to take the conservative approach and go with the entry that less specific 
-
-## Genus-level matches
-same_genus <- keepers %>%
-  anti_join(singleton_df) %>%
-  group_by(ASV, genus) %>%
-  tally() %>%
-  ungroup() %>%
-  group_by(ASV) %>%
-  tally() %>%
-  filter(n == 1) %>%
-  select(-n)
-  
-keepers_genus <- keepers %>%
-  anti_join(singleton_df) %>%
-  select(-species) %>%
-  unique()
-    
-single_genus <- same_genus %>%
-  left_join(keepers_genus) %>%
-  mutate(taxonomic_level = "genus") %>%
-  mutate(species = NA) %>%
-  mutate(taxon = genus)
-
-
-## Family-level matches
-same_family <- keepers %>%
-  anti_join(singleton_df)%>%
-  anti_join(single_genus, by = "ASV") %>%
-  group_by(ASV, family) %>%
-  tally() %>%
-  ungroup() %>%
-  group_by(ASV) %>%
-  tally() %>%
-  filter(n == 1) %>% # seqs that match a single family
-  select(-n) 
-
-keepers_family <- keepers %>%
-  anti_join(singleton_df) %>%
-  anti_join(single_genus, by = "ASV") %>%
-  select(-species) %>%
-  select(-genus) %>%
-  unique()
-    
-single_family <- same_family %>%
-  left_join(keepers_family) %>%
-  mutate(taxonomic_level = "family") %>%
-  mutate(species = NA) %>%
-  mutate(genus = NA) %>%
-  mutate(taxon = family)
-  
-
-## Order-level matches
-same_order <- keepers %>%
-  anti_join(singleton_df)%>%
-  anti_join(single_genus, by = "ASV") %>%
-  anti_join(single_family, by = "ASV") %>%
-  group_by(ASV, order) %>%
-  tally() %>%
-  ungroup() %>%
-  group_by(ASV) %>%
-  tally() %>%
-  filter(n == 1) %>% # seqs that match a single order
-  select(-n) 
-
-keepers_order <- keepers %>%
-  anti_join(singleton_df) %>%
-  anti_join(single_genus, by = "ASV") %>%
-  anti_join(single_family, by = "ASV") %>%
-  select(-species) %>%
-  select(-genus) %>%
-  select(-family) %>%
-  unique()
-    
-single_order <- same_order %>%
-  left_join(keepers_order) %>%
-  mutate(taxonomic_level = "order") %>%
-  mutate(species = NA) %>%
-  mutate(genus = NA) %>%
-  mutate(family = NA) %>%
-  mutate(taxon = order)
-
-
-## Class-level matches
-same_class <- keepers %>%
-  anti_join(singleton_df)%>%
-  anti_join(single_genus, by = "ASV") %>%
-  anti_join(single_family, by = "ASV") %>%
-  anti_join(single_order, by = "ASV") %>%
-  group_by(ASV, class) %>%
-  tally() %>%
-  ungroup() %>%
-  group_by(ASV) %>%
-  tally() %>% 
-  filter(n == 1) %>% # seqs that match a single class
-  select(-n) 
-
-## okay good, nothing left! 
-```
-
-modify the singleton_df to include the right variable headers
-```{r}
-single_entry <- singleton_df %>%
-  select(-accession, -length, -pident, -n_taxa) %>%
-  mutate(taxon = ifelse(taxonomic_level == "species", species, NA),
-           taxon = ifelse(taxonomic_level == "genus", genus, taxon),
-           taxon = ifelse(taxonomic_level == "family", family, taxon))
-```
-
-recombine the full data set now that the appropriate level of taxonomy has been determined
-```{r}
-sorted_tax_df <- bind_rows(single_order, single_family, single_genus, single_entry) %>%
-  select(ASV, taxon, taxonomic_level, species, genus, family, order, class, phylum, kingdom) %>%
-  unique()
-```
-
-
-```{r}
-#write.csv(sorted_tax_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/12S_expanded/asv_taxonomy_customdb_blast.csv")
-```
-
-
-compare assignments - remember that i did more geographic filtering on the ncbi blast db that did not happen with the 12s custom db
-load data
-```{r}
-custom_blast <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/12S_expanded/asv_taxonomy_customdb_blast.csv") %>%
-  select(!X) %>%
-  select(ASV, taxon, taxonomic_level)
-
-ncbi_blast <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/collapsed_tax_20240625.csv") %>%
-  select(!X) %>%
-  #rename(ASV = qseqid) %>%
-  select(ASV, taxon, taxonomic_level) %>%
-  unique()
-```
-
-compare assignments 
-```{r}
-join_tax <- custom_blast %>%
-  left_join(ncbi_blast, by = "ASV") 
-```
-
-x = custom db, y = ncbi db -**note there was more custom filtering based on range for the ncbi db results
-
-overall results look very similar. 
-
-
-do this: For consistency, all species names were matched to valid names on FishBase using the validate_names function in rfishbase. When a valid name was not found, the presence of a species in the study area was checked using the GBIF database (https://www.gbif.org/).
-
-- in addition to fishbase distributions, these citations may help: https://www.marinespecies.org/arms/aphia.php?p=taxdetails%26id=10194
-and exclude Atlantic Arctic species: Mecklenburg, C. W., Lynghammar, A., Johannesen, E., Byrkjedal, I., Christiansen, J. S., Dolgov, A. V., Karamushko, O. V., Mecklenburg, T. A., Møller, P. R., Steinke, D., & Wienerroither, R. M. (2018). Marine fishes of the Arctic region. Conservation of Arctic Flora and Fauna.
-
-- keep asv taxon assignments of unique ASVs that have the same genus/order/etc classifiation seperate. give them a # after the name. ie. Onchorhyncus 1 and Onchoryncus 2. 
-
-
-
