@@ -1,0 +1,82 @@
+---
+title: "map species distributions"
+author: "Kimberly Ledger"
+date: "2024-07-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+load libraries
+```{r}
+library(tidyverse)
+library(rnaturalearth)
+library(rnaturalearthdata)
+world <- ne_countries(scale = "medium", returnclass = "sf")
+```
+
+load data
+```{r}
+taxon_table <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxon_table.csv")
+```
+
+by using this output any sites with no reads have been removed - will need to think about how to visualize sampling effort vs where we got data from 
+```{r}
+pres_table <- taxon_table %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year != "DBO_2023") %>%   ## no metadata for this yet 
+  group_by(project, collection_year, location1, depth, longitude, latitude, taxon) %>%
+  summarize(n_reps_present = sum(reads > 0)) %>%
+  mutate(n_reps_present = ifelse(n_reps_present > 3, 3, n_reps_present))    ### just to get rid of the multiple SBS reps 
+```
+
+```{r}
+spp <- pres_table %>%
+  filter(taxon == "Oncorhynchus nerka")
+```
+
+
+plot 
+```{r,echo=FALSE,warning=FALSE, fig.height= 8, fig.width= 12}
+min_lat <- min(spp$latitude, na.rm = T)
+max_lat <- max(spp$latitude, na.rm = T)
+
+min_lon <- min(spp$longitude, na.rm = T)
+max_lon <- max(spp$longitude, na.rm = T)
+
+spp$collection_year <- as.factor(spp$collection_year)
+spp$n_reps_present <- as.factor(spp$n_reps_present)
+
+#bin the 30-60m depth samples to make a figure with fewer grids
+spp <- spp %>%
+  #mutate(depth2 = as.character(depth)) %>%
+  mutate(depth2 = ifelse(depth == 30, "30 to 60 & bottom", depth),
+         depth2 = ifelse(depth == 40, "30 to 60 & bottom", depth2),
+         depth2 = ifelse(depth == 50, "30 to 60 & bottom", depth2),
+         depth2 = ifelse(depth == 60, "30 to 60 & bottom", depth2),
+         depth2 = ifelse(depth == 0, "0 to 10", depth2),
+         depth2 = ifelse(depth == 10, "0 to 10", depth2),
+         depth2 = ifelse(depth == "bottom", "30 to 60 & bottom", depth2))
+
+spp_plot <- ggplot(data = world) +
+    geom_sf() +
+    geom_point(data = spp, aes(x = longitude, y = latitude, color= n_reps_present)) + 
+  coord_sf(xlim = c(min_lon-2, max_lon+2), ylim = c(min_lat-1, max_lat+1), expand = FALSE) +
+  theme_bw() +xlab("Longitude") +ylab("Latitude") +
+  facet_grid(depth2~collection_year) + 
+  labs(title = spp$taxon) +
+  theme(axis.text.x = element_text(angle = 90))
+
+spp_plot
+
+#ggsave(plot= BeringSea_plot, 
+#      filename = ("~/NBS_eDNA_sample_map/figures/BeringSea_plot.png"),
+#      width=12,
+#      height = 8,
+#      dpi = 300,
+#      units = c("in"))
+```
+
