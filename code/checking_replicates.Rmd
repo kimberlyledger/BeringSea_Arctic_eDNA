@@ -148,11 +148,11 @@ prop_asvs_in_positives <- prop_asvs_in_positives_20240423 %>%
 ```
 
 
-
 subtract the max proportion of tag-jumped reads for each ASV from samples
 ```{r}
 indexhop_table <- asv_table_with_sample_type %>%
   pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  mutate(reads = ifelse(is.na(reads), 0, reads)) %>%
   group_by(sample_ID_date) %>%
   mutate(TotalReadsPerSample = sum(reads, na.rm = T)) %>%
   left_join(prop_asvs_in_positives, by = c("ASV", "seq_date")) %>%
@@ -184,10 +184,6 @@ decontaminated_1 <- indexhop_table %>%
 decontaminated_1  
 ```
 
-consult the taxonomic id's of these ASVs to make sure this all makes sense to do. 
-
-
-### PAUSING HERE TO WORK WITH TAXONOMIC ID FOR NOW 
 
 ## Step 2. Account for contaminants in positive and negative controls 
 
@@ -195,8 +191,7 @@ next we will remove ASVs that only occur in controls and not in environmental sa
 
 number of reads
 ```{r}
-reads_per_type_ASV <- asv_table_with_sample_type %>%
-  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+reads_per_type_ASV <- asv_table_filter1 %>%
   group_by(ASV, sample_type) %>%
   summarize(TotalReadsPerASV = sum(reads, na.rm = TRUE)) %>%
   arrange(ASV)
@@ -207,7 +202,7 @@ what ASVs have no reads in samples, but reads in the controls?
 not_in_samples <- reads_per_type_ASV %>%
   pivot_wider(names_from = "sample_type", values_from = c("TotalReadsPerASV")) %>%
     filter(sample < 1)
-head(not_in_samples)
+not_in_samples
 ```
 
 
@@ -241,8 +236,7 @@ head(more_in_fb_blanks)
 
 remove these from the asv table
 ```{r}
-asv_table_filter1 <- asv_table_with_sample_type %>%
-  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+asv_table_filter2 <- asv_table_filter1 %>%
   filter(!ASV %in% not_in_samples$ASV) %>%
   filter(!ASV %in% more_in_pcr_blanks$ASV) %>%
   filter(!ASV %in% more_in_extraction_blanks$ASV) %>%
@@ -251,511 +245,461 @@ asv_table_filter1 <- asv_table_with_sample_type %>%
 ```
 
 
+## Step 3. Remove ASVs without taxonomic ID 
+
 now lets see how many of these ASVs have taxonomic IDs (these are not final tax ids)
 ```{r}
-taxonomy <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/collapsed_tax_20240625.csv") %>%
-  select(!X)
+taxonomy <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240709.csv") %>%
+  select(!X) %>% 
+  mutate(taxon = ifelse(ASV == "ASV_0898", "Hippoglossus stenolepis", taxon)) %>%  ### manually fix a couple entries 
+  mutate(taxon = ifelse(ASV == "ASV_1476", "Hippoglossoides", taxon)) %>%
+  mutate(taxonomic_level = ifelse(ASV == "ASV_1476", "genus", taxonomic_level)) %>%
+  unique()
+
+missing_tax <- data.frame(ASV = c("ASV_0016"), taxon = "Mallotus villosus", taxonomic_level = "species")   ### need to go back and fix this in the taxonomy output at some point.. 
+
+taxonomy <- taxonomy %>%
+  bind_rows(missing_tax)
 ```
 
 ```{r}
-asv_table_filter2 <- asv_table_filter1 %>%
+asv_table_filter2_with_tax <- asv_table_filter2 %>%
   left_join(taxonomy)
+
+# # Count occurrences of each key in table 1
+# asv_table_filter2_counts <- asv_table_filter2 %>%
+#   group_by(ASV) %>%
+#   summarise(count = n())
+# 
+# # Count occurrences of each key in table 2
+# taxonomy_counts <- taxonomy %>%
+#   group_by(ASV) %>%
+#   summarise(count = n())
+# 
+# # Identify keys that appear more than once in both tables
+# many_to_many_keys <- inner_join(asv_table_filter2_counts %>% filter(count > 1),
+#                                 taxonomy_counts %>% filter(count > 1),
+#                                 by = "ASV")
+# 
+# # Print the keys with many-to-many relationships
+# if (nrow(many_to_many_keys) > 0) {
+#   print("Many-to-many relationships detected for the following keys:")
+#   print(many_to_many_keys)
+# } else {
+#   print("No many-to-many relationships detected.")
+# }
 ```
 
 what ASV's do not have a taxonomic ID? 
 ```{r}
-asv_table_filter2 %>%
+asv_table_filter2_with_tax %>%
   filter(is.na(taxon)) %>%
   group_by(ASV) %>%
-  summarize(total_reads = sum(reads))
+  summarize(total_reads = sum(reads, na.rm = T))
 ```
+
+28 is human. 
+33 is Gadus chalcogrammus  ### TO DO - figure out why this was removed. 
+50 is Oncorhynchus keta 
+61 is Bos 
+
+NEED TO DOUBLE CHECK THESE!!!  some ASVs seem like they should be keepers. 
+
 
 remove ASVs with no taxonomic id
 ```{r}
-asv_table_filter3 <- asv_table_filter2 %>%
+asv_table_filter3 <- asv_table_filter2_with_tax %>%
   filter(!is.na(taxon))
 ```
 
 
-# 5. Dissimilarity between PCR (biological) replicates 
+## Step 4. Consider what is still in the negative controls - on a run-by-run basis
 
-This step EXPLORES samples for which the dissimilarity between PCR replicates exceeds the normal distribution of dissimilarities observed in samples. The objective of this step is to remove any technical replicates that look like they do not belong. - AND ESTABLISH A READ COUNT FILTER PER SAMPLE
+```{r}
+asv_table_filter3 %>%
+  filter(sample_type == "pcr_blank") %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~seq_date, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "ASV reads - pcr blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "none",
+    legend.title = element_blank()
+  )
+```
+
+keep this at the asv level
+```{r}
+asvs_PCRN <- asv_table_filter3 %>%
+  filter(sample_type == "pcr_blank") %>%
+  group_by(seq_date, ASV) %>%
+  summarise(total = sum(reads),
+            max = max(reads),
+            mean = mean(reads)) %>%
+  arrange(desc(total)) %>%
+  filter(total > 0)
+
+asvs_PCRN
+```
+
+okay, so subtracting the max reads in the pcr negative would remove quite a few pink salmon (asv 13) occurrences from 20240423 run.  probably don't want to use that approach.  
+
+how about using mean read count per ASV in the negative controls as the cutoff value
+
+```{r}
+asvs_PCRN_mean <- asvs_PCRN %>%
+  select(!total) %>%
+  select(!max)
+  
+pcrn_table <- asv_table_filter3 %>%
+  left_join(asvs_PCRN_mean, by = c("seq_date", "ASV")) %>%
+  mutate(mean = ifelse(is.na(mean), 0, mean)) %>%
+  mutate(reads_pcrn_removed = reads - mean) %>%
+  mutate(reads_pcrn_removed = if_else(reads_pcrn_removed < 0, 0, reads_pcrn_removed))
+pcrn_table
+```
+
+clean up the table by removing columns no longer needed 
+```{r}
+asv_table_filter4 <- pcrn_table %>%
+  select(!reads) %>%
+  select(!mean) %>%
+  dplyr::rename(reads = reads_pcrn_removed)
+```
+
+
+## Step 5.  Address field negatives. 
+
+- field negatives should be addressed on a project/year basis.
+
+plot by project and year 
+```{r}
+asv_table_filter4 %>%
+  filter(sample_type == "field_blank") %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~project_year, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "ASV reads - field blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "none",
+    legend.title = element_blank()
+  )
+```
+
+look closer at DBO 2023
+```{r}
+asv_table_filter4 %>%
+  separate(sample_ID_date, into = c("extraction_ID", "replicate", "seq_date2"),  remove = F) %>%
+  filter(sample_type == "field_blank") %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(~extraction_ID, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO 2023 - field blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "right",
+    legend.title = element_blank()
+  )
+```
+
+three pcr reps of each field blank extraction. only field blank has lots of seqs in all three pcr reps. will need to report. 
+
+
+look closer at NBS 2021 
+```{r}
+asv_table_filter4 %>%
+  separate(sample_ID_date, into = c("extraction_ID", "replicate", "seq_date2"),  remove = F) %>%
+  filter(sample_type == "field_blank") %>%
+  filter(project_year == "NBS_2021") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(~extraction_ID, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "NBS 2021 - field blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "right",
+    legend.title = element_blank()
+  )
+```
+
+
+look closer at NBS 2022 
+```{r}
+asv_table_filter4 %>%
+  separate(sample_ID_date, into = c("extraction_ID", "replicate", "seq_date2"),  remove = F) %>%
+  filter(sample_type == "field_blank") %>%
+  filter(project_year == "NBS_2022") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(~extraction_ID, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "NBS 2022 - field blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "right",
+    legend.title = element_blank()
+  )
+```
+
+
+look closer at NBS 2023 
+```{r}
+asv_table_filter4 %>%
+  separate(sample_ID_date, into = c("extraction_ID", "replicate", "seq_date2"),  remove = F) %>%
+  filter(sample_type == "field_blank") %>%
+  filter(project_year == "NBS_2023") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(~extraction_ID, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "NBS 2023 - field blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "right",
+    legend.title = element_blank()
+  )
+```
+
+
+look closer at SBS 2022 
+```{r}
+asv_table_filter4 %>%
+  separate(sample_ID_date, into = c("extraction_ID", "replicate", "seq_date2"),  remove = F) %>%
+  filter(sample_type == "field_blank") %>%
+  filter(project_year == "SBS_2022") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  facet_grid(~extraction_ID, scales = "free_x") + 
+  theme_bw() +
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "SBS 2022 - field blanks") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "right",
+    legend.title = element_blank()
+  )
+```
+
+
+alrighty, depending on how i end up handling field samples, the high dissimilarity and single pcr reps with seqs from field blanks may be able to stand out from the real samples.  
+
+
+```{r}
+#write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_20240710.csv")
+```
+
+
+## Step 6. explore the field samples 
+- use species accumulation curves with respect to the number of corrected reads to explore if that the sequencing depth was sufficient to detect all of the species contained in a sample
+
+
+but first let's check how many pcr reps each extraction has 
 
 are there any samples that have made it to this point that don't actually have any reads? 
 ```{r}
-ZeroReadCount <- asv_table_filter3 %>%
-  group_by(sample_ID) %>%
+ZeroReadCount <- asv_table_filter4 %>%
+  group_by(sample_ID_date, sample_type) %>%
   summarise(total_reads = sum(reads)) %>%
-  filter(total_reads == 0)
+  filter(total_reads == 0) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())
 ZeroReadCount 
 ```
 
+quite a few negative and also many samples without any sequencing reads 
+
 ```{r}
-asv_table_filter3 <- asv_table_filter3 %>% 
-  filter(!sample_ID %in% ZeroReadCount$sample_ID) %>%
-  separate(sample_ID, into = c("extraction_ID", "rep"), sep = "-", remove = F)
+asv_table_filter5 <- asv_table_filter4 %>% 
+  filter(!sample_ID_date %in% ZeroReadCount$sample_ID_date) %>%
+  separate(sample_ID_date, into = c("extraction_ID", "rep", "seq_date2"), sep = "-", remove = F)
 ```
 
-how many extractions have only one pcr replicate? 
+how many extractions (excluding the ones with zero reads) have only one pcr replicate? 
 ```{r}
-OneRep <- asv_table_filter3 %>%
-  group_by(extraction_ID) %>%
-  summarise(nrep = n_distinct(sample_ID)) %>%
-  filter(nrep == 1) 
+OneRep <- asv_table_filter5 %>%
+  group_by(extraction_ID, sample_type) %>%
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep == 1) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())
 OneRep
 ```
 
 how many extractions have two pcr replicates? 
 ```{r}
-TwoRep <- asv_table_filter3 %>%
-  group_by(extraction_ID) %>%
-  summarise(nrep = n_distinct(sample_ID)) %>%
-  filter(nrep == 2)  
+TwoRep <- asv_table_filter5 %>%
+  group_by(extraction_ID, sample_type) %>%
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep == 2) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())  
 TwoRep
 ```
 
-can't test for dissimilarity among pcr replicates of extractions with only one pcr rep
+how many extractions have three pcr replicates? 
 ```{r}
-temp_table <- asv_table_filter3 %>%
-  filter(!extraction_ID %in% OneRep$extraction_ID)
-```
-good to go. 
-
-first, i'll calculate an eDNA index --- CHECK THIS! 
-```{r}
-normalized <- temp_table %>%
-  group_by(sample_ID) %>%
-  mutate(Tot = sum(reads),
-         Prop_reads = reads/Tot) %>%
-  dplyr::group_by(ASV) %>%
-  mutate(Colmax = max(Prop_reads, na.rm = TRUE),
-         Normalized_reads = Prop_reads/Colmax)
-
-#### NOT DOING THIS AT THE MOMENT (to establish a filter threshold)
-#add a new sample id column that also includes the location - will use this for dissimilarity measures
-
-#normalized <- normalized %>%
-#  unite(site_biorep, site, extraction_ID, sep = ".", remove = FALSE) %>%
-#  unite(new_ID, site_biorep, pcr_replicate, sep = "-", remove = FALSE)
-```
-
-
-```{r}
-library(vegan)
-
-tibble_to_matrix <- function (tb) {
-  
-  tb %>%
-  #normalized %>%
-    #group_by(new_ID, ASV) %>%
-    #group_by(extraction_ID, ASV) %>% 
-    group_by(sample_ID, ASV) %>%
-    summarise(nReads = sum(Normalized_reads)) %>% 
-    spread ( key = "ASV", value = "nReads", fill = 0) %>%
-    ungroup() -> matrix_1
-    #samples <- pull (matrix_1, new_ID)
-    #samples <- pull (matrix_1, extraction_ID)
-    samples <- pull (matrix_1, sample_ID)
-    matrix_1[,-1] -> matrix_1
-    data.matrix(matrix_1) -> matrix_1
-    dimnames(matrix_1)[[1]] <- samples
-    vegdist(matrix_1) -> matrix_1
-}
-
-```
-
-
-```{r}
-all.distances.full <- tibble_to_matrix(normalized)
-
-# Do all samples have a name?
-summary(is.na(names(all.distances.full)))
-```
-
-make the pairwise distances a long table  --- NEED TO FIX THIS !!!! 
-```{r}
-library(reshape)
-
-as_tibble(subset(melt(as.matrix(all.distances.full)))) -> all.distances.melted
-
-# Any major screw ups
-summary(is.na(all.distances.melted$value))              ### need to check this!!! 
-
-#Now, create a three variables for all distances - between PCR replicates or NOT
-all.distances.melted %>%
-  separate(X1, into = "Bottle1", sep = "\\-", remove = FALSE) %>%
-  separate(X2, into ="Bottle2", sep = "\\-", remove = FALSE) %>%
-  mutate(Distance.type = case_when(Bottle1 == Bottle2 ~ "PCR.replicates",
-                                      TRUE ~ "Different Site"
-                                     )) %>%
-  dplyr::select(Sample1 = X1, Sample2 = X2 , value , Distance.type) %>%
-  filter (Sample1 != Sample2) -> all.distances.to.plot
-
-
-
-# Now, create a three variables for all distances, they could be PCR replicates, BIOL replicates, or from the same site
-
-# all.distances.melted %>%
-#   separate (X1, into = "Bottle1", sep = "\\-", remove = FALSE) %>%
-#   separate (Bottle1, into = "Site1", sep = "\\.", remove = FALSE) %>%
-#   separate (X2, into ="Bottle2", sep = "\\-", remove = FALSE) %>%
-#   separate (Bottle2, into = "Site2", sep = "\\.",remove = FALSE) %>%
-#   mutate ( #Day.site1 = str_sub(Bottle1, start = 1, end = -2),
-#            #Day.site2 = str_sub(Bottle2, start = 1, end = -2),
-#            Distance.type = case_when( Bottle1 == Bottle2 ~ "PCR.replicates",
-#                                       #Day.site1 == Day.site2 ~ "Biol.replicates",
-#                                       Site1 == Site2 ~ "Same Site",
-#                                       TRUE ~ "Different Site"
-#                                      )) %>%
-#   dplyr::select(Sample1 = X1, Sample2 = X2 , value , Distance.type) %>%
-#   filter (Sample1 != Sample2) -> all.distances.to.plot
-
-# Checking all went well
-sapply(all.distances.to.plot, function(x) summary(is.na(x)))
-```
-
-```{r}
-all.distances.to.plot$Distance.type <- all.distances.to.plot$Distance.type  %>% fct_relevel("PCR.replicates", "Different Site") 
-
-ggplot (all.distances.to.plot) +
-  geom_histogram (aes (fill = Distance.type, x = value, after_stat(ndensity)), position = "dodge",  alpha = 0.9, bins = 50) +
-  facet_wrap( ~ Distance.type) +
-  labs (x = "Pairwise dissimilarity", y = "density" ,
-        Distance.type = "Distance") +
-    guides (fill = "none")
-
-  #ggsave("visual.anova.png", dpi = "retina")
-```
-
-what is the relationship between dissimilarity and pcr replicate read count?  
-```{r}
-pcr_rep_dissim <- all.distances.to.plot %>%
-  filter(Distance.type == "PCR.replicates")
-```
-
-join read count with Sample1 column 
-```{r}
-reads_per_pcr_rep <- normalized %>%
-  group_by(sample_ID) %>%
-  summarise(tot_reads = sum(reads)) %>%
-  rename(Sample1 = sample_ID)
-```
-
-```{r}
-pcr_rep_join <- pcr_rep_dissim %>%
-  left_join(reads_per_pcr_rep, by = "Sample1") %>%
-  filter(!is.na(pcr_rep_join$tot_reads))
-```
-
-make a plot 
-```{r}
-ggplot(pcr_rep_join, aes(x = tot_reads, y = value)) + 
-  geom_point()
-```
-
-okay, maybe not as helpful as i'd hoped it would be... 
-
-so if i did a read count threshold i'd definitely not have it over ~5000 reads per pcr rep, so let's zoom in on that 
-```{r}
-ggplot(pcr_rep_join, aes(x = tot_reads, y = value)) + 
-  geom_point() +
-  xlim(0, 5000)
-```
-
-maybe the distance to centroid approach is more appropriate??
-
-now identify and discard outliers 
-```{r message=FALSE, warning=FALSE}
-normalized %>%
-  filter(sample_type == "sample") %>%    #### adding this here.. maybe remove and clean up other sample types so they can be included
-  group_by(extraction_ID) %>% nest() -> nested.cleaning 
-
-nested.cleaning %>% 
-  mutate(matrix = map(data, tibble_to_matrix)) -> nested.cleaning
-
-nested.cleaning %>% mutate(ncomparisons = map(matrix, length)) -> nested.cleaning
-```
-
-```{r}
-dist_to_centroid <- function (x,y) {
-  
-  #biol <- rep(y, dim(x)[[1]])
-  biol <- rep(y, length(x))
-  
-  if (length(biol) == 1) {
-    output = rep(x[1]/2,2)
-    names(output) <- attr(x, "Labels")
-  }else{ 
-    
-  dispersion <- betadisper(x, group = biol)
-  output = dispersion$distances
-  }
-  output
-    }
-```
-
-```{r}
-nested.cleaning.temp <- nested.cleaning %>% 
-  mutate(distances = map2(matrix, extraction_ID, dist_to_centroid))
-
-all_distances <- nested.cleaning.temp %>%
-  unnest_longer(distances) %>%
-  dplyr::select(extraction_ID, distances_id, distances)
-
-hist(all_distances$distances)
-```
-
-calculate normal distribution of distances to centroid
-```{r}
-normparams <- MASS::fitdistr(all_distances$distances, "normal")$estimate                                      
-probs <- pnorm(all_distances$distances, normparams[1], normparams[2])
-outliers_centroid <- which(probs>0.95)
-
-discard_centroid <- all_distances$distances_id[outliers_centroid]
-discard_centroid
-```
-
-combine with read counts
-```{r}
-pcr_rep_centroid_dist <- all_distances %>%
-  rename(Sample1 = distances_id) %>%
-  left_join(reads_per_pcr_rep, by = "Sample1") %>%
-  filter(!is.na(tot_reads)) %>%
-  mutate(outlier = ifelse(Sample1 %in% discard_centroid, "yes", "no"))
-```
-
-plot
-```{r}
-ggplot(pcr_rep_centroid_dist, aes(x = tot_reads, y = distances, color = outlier)) + 
-  geom_point()
-
-#zoom in
-ggplot(pcr_rep_centroid_dist, aes(x = tot_reads, y = distances, color = outlier)) + 
-  geom_point() +
-  xlim(0, 5000)
-
-pcr_rep_centroid_dist %>%
-  filter(tot_reads > 500) %>%
-  ggplot(aes(x = tot_reads, y = distances, color = outlier)) + 
-  geom_point()
-```
-
-okay, not a clear relationship between reat counts and similarity among pcr replicates.
-
-but 500 reads is feeling like a decent minimum cut off. maybe some analyses i will be more stringent on this. 
-
-compare dissimilarity among pcr replicates using taxonmic assignments (preliminary version)?
-
-this is not going to be great because taxonomic assignments have not been cleaned up fully. but should get rid of having dissimilarity just due to lots of gadid, salmon, etc asv's 
-
-can't test for dissimilarity among pcr replicates of extractions with only one pcr rep
-```{r}
-temp_table_taxon <- asv_table_filter3 %>%
-  filter(!extraction_ID %in% OneRep$extraction_ID) %>%
-  group_by(sample_ID, extraction_ID, rep, sample_type, project_year, collection_year, project, taxon, taxonomic_level) %>%
-  summarize(reads = sum(reads))
-```
-
-no reads
-```{r}
-temp_table_taxon %>%
-  group_by(sample_ID) %>%
-  summarise(total_reads = sum(reads)) %>%
-  filter(total_reads < 1)
-```
-
-good to go. 
-
-first, i'll calculate an eDNA index --- CHECK THIS! 
-```{r}
-normalized_taxon <- temp_table_taxon %>%
-  group_by(sample_ID) %>%
-  mutate(Tot = sum(reads),
-         Prop_reads = reads/Tot) %>%
-  dplyr::group_by(taxon) %>%
-  mutate(Colmax = max(Prop_reads, na.rm = TRUE),
-         Normalized_reads = Prop_reads/Colmax)
-
-#### NOT DOING THIS AT THE MOMENT (to establish a filter threshold)
-#add a new sample id column that also includes the location - will use this for dissimilarity measures
-
-#normalized <- normalized %>%
-#  unite(site_biorep, site, extraction_ID, sep = ".", remove = FALSE) %>%
-#  unite(new_ID, site_biorep, pcr_replicate, sep = "-", remove = FALSE)
-```
-
-
-```{r}
-library(vegan)
-
-tibble_to_matrix <- function (tb) {
-  
-  tb %>%
-  #normalized %>%
-    #group_by(new_ID, ASV) %>%
-    #group_by(extraction_ID, ASV) %>% 
-    group_by(sample_ID, taxon) %>%
-    summarise(nReads = sum(Normalized_reads)) %>% 
-    spread ( key = "taxon", value = "nReads", fill = 0) %>%
-    ungroup() -> matrix_1
-    #samples <- pull (matrix_1, new_ID)
-    #samples <- pull (matrix_1, extraction_ID)
-    samples <- pull (matrix_1, sample_ID)
-    matrix_1[,-1] -> matrix_1
-    data.matrix(matrix_1) -> matrix_1
-    dimnames(matrix_1)[[1]] <- samples
-    vegdist(matrix_1) -> matrix_1
-}
-
-```
-
-now identify and discard outliers 
-```{r message=FALSE, warning=FALSE}
-normalized_taxon %>%
-  filter(sample_type == "sample") %>%    #### adding this here.. maybe remove and clean up other sample types so they can be included
-  group_by(extraction_ID) %>% nest() -> nested.cleaning 
-
-nested.cleaning %>% 
-  mutate(matrix = map(data, tibble_to_matrix)) -> nested.cleaning
-
-nested.cleaning %>% mutate(ncomparisons = map(matrix, length)) -> nested.cleaning
-```
-
-
-```{r}
-nested.cleaning.temp <- nested.cleaning %>% 
-  mutate(distances = map2(matrix, extraction_ID, dist_to_centroid))
-
-all_distances <- nested.cleaning.temp %>%
-  unnest_longer(distances) %>%
-  dplyr::select(extraction_ID, distances_id, distances)
-
-hist(all_distances$distances)
-```
-
-calculate normal distribution of distances to centroid
-```{r}
-normparams <- MASS::fitdistr(all_distances$distances, "normal")$estimate                                      
-probs <- pnorm(all_distances$distances, normparams[1], normparams[2])
-outliers_centroid <- which(probs>0.95)
-
-discard_centroid <- all_distances$distances_id[outliers_centroid]
-discard_centroid
-```
-
-combine with read counts
-```{r}
-pcr_rep_centroid_dist <- all_distances %>%
-  rename(Sample1 = distances_id) %>%
-  left_join(reads_per_pcr_rep, by = "Sample1") %>%
-  filter(!is.na(tot_reads)) %>%
-  mutate(outlier = ifelse(Sample1 %in% discard_centroid, "yes", "no"))
-```
-
-plot
-```{r}
-ggplot(pcr_rep_centroid_dist, aes(x = tot_reads, y = distances, color = outlier)) + 
-  geom_point()
-
-#zoom in
-ggplot(pcr_rep_centroid_dist, aes(x = tot_reads, y = distances, color = outlier)) + 
-  geom_point() +
-  xlim(0, 5000)
-
-pcr_rep_centroid_dist %>%
-  filter(tot_reads > 1000) %>%
-  ggplot(aes(x = tot_reads, y = distances, color = outlier)) + 
-  geom_point()
-```
-
-
-okay, overall dissimilarities are now lower when using taxons (instead of ASVs) - but the 95% outlier cutoff also drops to about 0.7 from 0.75. 
-
-
-how many true field sample pcr replicates will i have insufficient data for if i but the read threshold at 500 or at 1000 reads. 
-
-```{r}
-less_than_500 <- asv_table_filter3 %>%
-  group_by(sample_ID) %>%
-  summarize(reads = sum(reads)) %>%
-  filter(reads < 500)
-
-less_than_1000 <- asv_table_filter3 %>%
-  group_by(sample_ID) %>%
-  summarize(reads = sum(reads)) %>%
-  filter(reads < 1000)
-```
-
-sample type counts for this filter
-```{r}
-asv_table_filter3 %>%
-  select(sample_ID, sample_type) %>%
-  unique() %>%
-  group_by(sample_type) %>%
-  summarize(n_pcr_reps = n())
-
-#removing < 500 reads
-asv_table_filter3 %>%
-  select(sample_ID, sample_type) %>%
-  unique() %>%
-  filter(sample_ID %in% less_than_500$sample_ID) %>%
-  group_by(sample_type) %>%
-  summarize(n_pcr_reps = n())
-
-#removing < 1000 reads
-asv_table_filter3 %>%
-  select(sample_ID, sample_type) %>%
-  unique() %>%
-  filter(sample_ID %in% less_than_1000$sample_ID) %>%
-  group_by(sample_type) %>%
-  summarize(n_pcr_reps = n())
-```
-
-
-okay, so doing the 1000 threshold removes a few more field sample pcr reps than 500 threshold, but not by all that much. 
-
-if i do filter by 1000 read totals, how many extractions of field samples do i have 2 or more pcr replicates remaining? 
-```{r}
-asv_table_filter4 <- asv_table_filter3 %>%
-  filter(sample_ID %in% less_than_1000$sample_ID)
-
-
-n_reps <- asv_table_filter4 %>%
+ThreeRep <- asv_table_filter5 %>%
   group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID))
-n_reps 
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep >= 3) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())  
+ThreeRep
+```
 
-#i don't care about controls 
-onerep <- n_reps %>%
-  filter(sample_type == "sample") %>%
-  filter(nrep == 1)
-onerep
-## 77 
 
-onerep_meta <- sample_metadata %>%
-  filter(extraction_ID %in% onerep$extraction_ID) %>%
-  select(extraction_ID, collection_year, project, extraction_plate, seq_date) %>%
-  unique()
-onerep_meta
+how do these numbers change if i set a pretty low read count per pcr replicate threshold to filter? 
 
-to_remove <- onerep_meta %>%
-  group_by(project, collection_year, seq_date) %>%
-  summarize(n = n())
+```{r}
+reads_per_pcr_rep <- asv_table_filter5 %>%
+  group_by(sample_ID_date, sample_type) %>%
+  summarise(tot_reads = sum(reads))   ##1737
 
-#are these number proportional to total number of extractions, or are there clear biases? 
+atleast_500 <- reads_per_pcr_rep %>%
+  filter(tot_reads >= 500)            ##1350
+```
+
+```{r}
+asv_table_filter6 <- asv_table_filter5 %>%
+  filter(sample_ID_date %in% atleast_500$sample_ID_date)
+```
+
+how many extractions (excluding the ones with zero reads) have only one pcr replicate? 
+```{r}
+OneRep <- asv_table_filter6 %>%
+  group_by(extraction_ID, sample_type) %>%
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep == 1) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())
+OneRep
+```
+
+how many extractions have two pcr replicates? 
+```{r}
+TwoRep <- asv_table_filter6 %>%
+  group_by(extraction_ID, sample_type) %>%
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep == 2) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())  
+TwoRep
+```
+
+how many extractions have three pcr replicates? 
+```{r}
+ThreeRep <- asv_table_filter6 %>%
+  group_by(extraction_ID, sample_type) %>%
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep >= 3) %>%
+  group_by(sample_type) %>%
+  summarize(total = n())  
+ThreeRep
+```
+
+just to remind myself, how many extractions from samples should there be if everything was perfect? 
+```{r}
 sample_metadata %>%
   filter(sample_type == "sample") %>%
-  select(extraction_ID, collection_year, project, extraction_plate, seq_date) %>%
+  select(extraction_ID) %>%
   unique() %>%
-  group_by(project, collection_year, seq_date) %>%
-  summarize(total = n()) %>%
-  left_join(to_remove) %>%
-  mutate(prop = n/total)
+  summarize(count = n())
+```
 
+okay, so with decontamination and no read filter it looks like 467+19 = 486 out of the 489 field samples have two or more pcr replicates with reads. 
+after filtering out pcr reps with <500 reads, we are down to 348+68 =  416 out of the 489 field samples have two or more pcr replicates with reads.
+
+read in some metadata that groups extractions IDs into sites 
+```{r}
+metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_metadata.csv") 
+
+metadata_mini <- metadata %>%
+  select(extraction_ID, project, collection_year, location1)  ## this set up doesn't work for DBO sample format right now - will need to fix 
 ```
 
 
-okay so most samples lost are from 2023 NBS, and also DBO.  but not really at crazy high proportions (20% or less)
+what are some of these samples with < 500 reads?  let me pull them out on the accumulation curve. 
+```{r}
+lessthan_500 <- reads_per_pcr_rep %>%
+  filter(sample_type == "sample") %>%
+  filter(tot_reads < 500) %>%
+  separate(sample_ID_date, into = c("extraction_ID", "rep", "seq_date2"), sep = "-", remove = F) %>%
+  left_join(metadata_mini)
+```
+
+
+now, let's get to the accumulation curve thing. will start by running this by pcr reps and then can also try by extraction IDs. 
+
+iNext seems to crash because of too many samples.  let me break this up by project and year to see if it helps.
+```{r}
+NBS_2021 <- asv_table_filter5 %>%
+  filter(project_year == "NBS_2021")
+
+NBS_2022 <- asv_table_filter5 %>%
+  filter(project_year == "NBS_2022")
+
+SBS_2022 <- asv_table_filter5 %>%
+  filter(project_year == "SBS_2022")
+```
+
+okay, still crashes with just NBS 2021. let's approach this another way.
+
+```{r}
+NBS_2021_w_meta <- NBS_2021 %>%
+  left_join(metadata_mini)
+
+NBS_2022_w_meta <- NBS_2022 %>%
+  left_join(metadata_mini)
+
+SBS_2022_w_meta <- SBS_2022 %>%
+  left_join(metadata_mini)
+```
 
 
 try out accumulation curve to evaluate sequencing depth 
@@ -763,27 +707,149 @@ try out accumulation curve to evaluate sequencing depth
 library(iNEXT)
 library(ggplot2)
 
-data("spider")
-str(spider)
+#maybe "abundance" will be the easiest to format?
+# need N lists of species read counts 
 
-spider
+taxon_table <- SBS_2022_w_meta %>%
+  filter(sample_type == "sample") %>%       ##just going to do this for real samples for now. 
+   group_by(sample_ID_date, location1, taxon) %>%
+   summarize(total_reads = sum(reads)) %>%
+   pivot_wider(names_from = taxon, values_from = total_reads)
+taxon_table
 
-#convert my ASV table (or taxon table) to lists of vectors
+# now convert the taxon table to lists of species abundances (one list per pcr rep)
 
-asv_table_filter3 %>%
-  select(sample_ID, ASV, reads) %>%
-  pivot_wider(names_from = ASV, values_from = reads)
+# okay, need to go back to long format 
+taxon_long <- taxon_table %>%
+  pivot_longer(cols = c(3:114), names_to = "taxon", values_to = "reads") %>%    #### CHECK COLUMN VALUES!!!
+  filter(reads > 0) %>% # filter out entries with no reads
+  arrange(sample_ID_date, desc(reads))  # sort reads in descending order and group by sample
 
-asv_table_filter3 %>%
-  dplyr::group_by(sample_ID, ASV) %>%
-  dplyr::summarise(n = dplyr::n(), .groups = "drop") %>%
-  dplyr::filter(n > 1L)
+st <- taxon_long %>%
+  filter(location1 == "20")
 
-asv_table_filter3 %>%
-  filter(sample_ID == "e04217-A") %>%
-  filter(ASV == "ASV_0001")
+# Nest the data to create a list of species reads for each sample
+read_lists <- st %>%
+  group_by(sample_ID_date) %>%
+  nest() %>%
+  mutate(
+    species_read_list = map(data, ~ .x %>% select(taxon, reads))
+  ) %>%
+  select(sample_ID_date, species_read_list)
 
-## okay i have a problem with duplicate rows from SBS data that was sequenced twice. 
+#Convert to a list of lists
+read_list_final <- read_lists %>%
+  pull(species_read_list) %>%
+  setNames(read_lists$sample_ID_date)
+
+# Convert each table to a numeric vector of abundances
+read_lists_vector <- map(read_list_final, ~ {
+  .x %>%
+    filter(reads > 0) %>%
+    arrange(desc(reads)) %>%
+    pull(reads)
+})
+
+# subset to test how it works 
+#mini_list <- head(read_lists_vector, 8)
+
+# try to run iNEXT - the function doesn't like non-integers so lots of warning will pop up.
+#out_mini <- iNEXT(mini_list, q = 0, datatype = "abundance")
+#out_nbs2021_st5 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+#out_nbs2021_st29 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+#out_nbs2021_st23 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+#out_nbs2022_st7 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+#out_nbs2022_st16 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+#out_nbs2022_st37 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+#out_sbs2022_st16 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+out_sbs2022_st20 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
+
+```
+
+check out the output 
+```{r}
+out_nbs2021$DataInfo
+out_nbs2021$iNextEst
+out_nbs2021$AsyEst
+```
+ 
+plot the output  - i'm getting color plot errors when there are more then 8 
+```{r}
+# Assuming 'out' is your iNEXT object
+#unique_assemblages <- length(unique(out$DataInfo$Assemblage))
+
+#library(RColorBrewer)
+# Generate a color palette with the required number of colors
+#palette <- brewer.pal(n = unique_assemblages, name = "Set3")
+
+#ggiNEXT(out_nbs2021_st5, type = 1, color.var = "Assemblage") #+ 
+  #scale_colour_manual(values = palette)
+```
+ 
+custom plot since ggiNEXT is giving me color problems 
+```{r}
+df <- fortify(out_sbs2022_st20, type=1)
+df.point <- df[which(df$Method=="Observed"),]
+df.line <- df[which(df$Method!="Observed"),]
+df.line$Method <- factor(df.line$Method,  c("Rarefaction", "Extrapolation"), c("Rarefaction", "Extrapolation"))
+
+my_plot <- ggplot(df, aes(x=x, y=y, colour=Assemblage)) +  
+  geom_point(size=5, data=df.point) + 
+  geom_line(aes(linetype=Method), lwd=1.5, data=df.line) + 
+  geom_ribbon(aes(ymin=y.lwr, ymax=y.upr, fill=Assemblage, colour=NULL), alpha=0.2) + 
+  labs(x="Number of sequencing reads", y="Number of detected taxa", 
+       title = "SBS 2022 - st 20") + 
+  theme(legend.position = "bottom",  legend.title=element_blank(), text=element_text(size=18), legend.box = "vertical") +
+  #xlim(0, 4000) + 
+  theme_minimal()
+my_plot
+```
+ 
+```{r}
+ggsave("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/accumulation_curves/SBS_2022_st20.png", plot = my_plot, dpi = 150, width = 8, height = 6)
+```
+ 
+
+
+I'M NOT SURE THIS CODE IS CORRECT - got it from chatgpt
+okay, the plateau seems to be around 1000 reads - let's see if i can actually quantify that 
+```{r}
+# Extract the data for one of the assemblages
+data_curve <- out_nbs2021_st5$iNextEst$size_based[out_nbs2021_st5$iNextEst$size_based$Assemblage == "e00614-C-20240423",]
+#data_curve <- out_nbs2022_st16$iNextEst$size_based[out_nbs2022_st16$iNextEst$size_based$Assemblage == "e01855-A-20240423",]
+
+# Fit a smoothing spline
+fit <- smooth.spline(data_curve$m, data_curve$qD)
+
+# Compute the derivative
+deriv <- predict(fit, data_curve$m, deriv = 1)
+
+# Plot the derivative to find where it approaches zero
+plot(data_curve$m, deriv$y, type = "l", main = "First Derivative of Accumulation Curve", xlab = "Sample Size", ylab = "Rate of Change")
+
+# Identify the plateau point
+threshold <- 0.01  # Define a threshold for the slope
+plateau_index <- which(abs(deriv$y) < threshold)[1]
+plateau_point <- data_curve$m[plateau_index]
+
+print(paste("The curve begins to plateau at sample size:", plateau_point))
 ```
 
 
+determine if observed data point is on plateau. 
+
+COME BACK TO THIS ANALYSIS
+
+
+## next closer look at SBS data
+-compare samples with multiple library preps
+- can we combine? just use one or the other??? 
+
+
+
+ 
+
+
+
+ 
+ 
