@@ -68,8 +68,8 @@ singleton_df <- singletons %>%
   left_join(keepers) %>%
   select(-n) %>%
   mutate(taxonomic_level = "species") %>%
-  mutate(taxon = species) %>%
-  select(qseqid, taxon, taxonomic_level)
+  mutate(taxon = species) #%>%
+  #select(qseqid, taxon, taxonomic_level)
 
 ## Genus-level matches
 # remove the singletons from the bigger df 
@@ -78,9 +78,9 @@ single_genus <- keepers %>%
   left_join(., keepers) %>%
   arrange(qseqid) %>%
   mutate(taxonomic_level = "genus") %>%
-  mutate(taxon = "Oncorhynchus") %>%
-  select(qseqid, taxon, taxonomic_level) %>%
-  unique
+  mutate(taxon = "Oncorhynchus") #%>%
+  #select(qseqid, taxon, taxonomic_level) %>%
+  #unique
 ```
 
 so as I have the Oncorhynchus genus designation right now, it can be any pacific salmon (or O. mykiss) except for Chinook. 
@@ -91,9 +91,10 @@ oncorhynchus_df <- singleton_df %>%
   bind_rows(single_genus)
 
 oncorhynchus_df$taxon <- gsub("_", " ", oncorhynchus_df$taxon)
+oncorhynchus_df$species <- gsub("_", " ", oncorhynchus_df$species)
 
 #export 
-write.csv(oncorhynchus_df, "outputs/oncorhynchus_asv_id.csv")
+write.csv(oncorhynchus_df, "../outputs/oncorhynchus_asv_id.csv")
 ```
 
 
@@ -156,8 +157,8 @@ singleton_df <- singletons %>%
   left_join(keepers) %>%
   select(-n) %>%
   mutate(taxonomic_level = "species") %>%
-  mutate(taxon = species) %>%
-  select(qseqid, taxon, taxonomic_level)
+  mutate(taxon = species) #%>%
+  #select(qseqid, taxon, taxonomic_level)
 
 
 # if the match is Gadus macrocephalus and Gadus chalcogrammus - then go with the genus level 
@@ -177,9 +178,9 @@ gadus <- keepers %>%
   anti_join(singleton_df)%>% # 
   left_join(., keepers) %>% 
   filter(qseqid %in% single_genus$qseqid) %>%
-  select(qseqid) %>% 
-  unique() %>% 
-  mutate(taxon = "Gadid") %>%
+  #select(qseqid, species) %>% 
+  #unique() %>% 
+  mutate(taxon = "Gadus") %>%
   mutate(taxonomic_level = "genus")
   
 ## what's remaining? 
@@ -187,11 +188,10 @@ leftover <- keepers %>%
   anti_join(singleton_df)%>% # 
   left_join(., keepers) %>%
   filter(!qseqid %in% single_genus$qseqid) %>%
-  select(qseqid) %>%
-  unique() %>%
+  #select(qseqid, species) %>%
+  #unique() %>%
   mutate(taxon = "Gadidae") %>%
   mutate(taxonomic_level = "family")
-
 ```
 
 remove underscore from taxon name 
@@ -201,6 +201,7 @@ gadidae_df <- singleton_df %>%
   bind_rows(leftover)
 
 gadidae_df$taxon <- gsub("_", " ", gadidae_df$taxon)
+gadidae_df$species <- gsub("_", " ", gadidae_df$species)
 
 #export 
 write.csv(gadidae_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_asv_id.csv")

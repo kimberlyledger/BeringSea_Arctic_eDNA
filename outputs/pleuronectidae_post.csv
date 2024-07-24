@@ -3,20 +3,24 @@ ASV_0010,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronect
 ASV_0025,Hippoglossoides,genus,Hippoglossoides elassodon,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0025,Hippoglossoides,genus,Hippoglossoides robustus,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0027,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0042,Platichthys,genus,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0042,Platichthys,genus,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0042,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0042,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0042,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0058,Lepidopsetta,genus,Lepidopsetta bilineata,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0058,Lepidopsetta,genus,Lepidopsetta polyxystra,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0085,Hippoglossus stenolepis,species,Hippoglossus stenolepis,Hippoglossus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0104,Pleuronectidae 1,family,Acanthopsetta nadeshnyi,Acanthopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_0104,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0104,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0104,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0124,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0130,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0227,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0227,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0227,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0252,Lepidopsetta,genus,Lepidopsetta bilineata,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0252,Lepidopsetta,genus,Lepidopsetta polyxystra,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0262,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0262,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0262,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0270,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -25,12 +29,11 @@ ASV_0312,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronect
 ASV_0333,Lepidopsetta,genus,Lepidopsetta bilineata,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0333,Lepidopsetta,genus,Lepidopsetta polyxystra,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0369,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0373,Pleuronectidae 1,family,Microstomus pacificus,Microstomus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0373,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0373,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0373,Myzopsetta proboscidea,species,Myzopsetta proboscidea,Myzopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0408,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0412,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0422,Hippoglossus stenolepis,species,Hippoglossus stenolepis,Hippoglossus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0461,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0461,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0461,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0469,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -38,6 +41,7 @@ ASV_0497,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronect
 ASV_0519,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0650,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0677,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0679,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0679,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0679,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0687,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -60,14 +64,14 @@ ASV_0884,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus
 ASV_0898,Hippoglossus stenolepis,species,Hippoglossus stenolepis,Hippoglossus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0898,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0903,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0908,Pleuronectidae 1,family,Liopsetta glacialis,Liopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0908,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0908,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0909,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0934,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0948,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0959,Pleuronectidae 1,family,Microstomus pacificus,Microstomus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_0959,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_0959,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_0959,Pleuronectidae 2,family,Microstomus pacificus,Microstomus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0959,Pleuronectidae 2,family,Myzopsetta proboscidea,Myzopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1003,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1013,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1014,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -79,32 +83,27 @@ ASV_1073,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronect
 ASV_1083,Hippoglossoides,genus,Hippoglossoides elassodon,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1083,Hippoglossoides,genus,Hippoglossoides robustus,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1106,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_1121,Glyptocephalus zachirus,species,Glyptocephalus zachirus,Glyptocephalus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_1169,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1172,Reinhardtius hippoglossoides,species,Reinhardtius hippoglossoides,Reinhardtius,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_1183,Lepidopsetta,genus,Lepidopsetta bilineata,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1183,Lepidopsetta,genus,Lepidopsetta polyxystra,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_1199,Pleuronectidae 1,family,Microstomus pacificus,Microstomus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.225,1,98.225,0
-ASV_1199,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.225,1,98.225,0
-ASV_1199,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.225,1,98.225,0
+ASV_1199,Pleuronectidae 2,family,Microstomus pacificus,Microstomus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1199,Pleuronectidae 2,family,Myzopsetta proboscidea,Myzopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_1206,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1215,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1221,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_1238,Pleuronectidae 1,family,Acanthopsetta nadeshnyi,Acanthopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1238,Pleuronectidae 1,family,Microstomus pacificus,Microstomus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1238,Pleuronectidae 1,family,Platichthys flesus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1238,Pleuronectidae 1,family,Platichthys stellatus,Platichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1238,Myzopsetta proboscidea,species,Myzopsetta proboscidea,Myzopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1253,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1311,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1339,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1343,Lepidopsetta,genus,Lepidopsetta bilineata,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1343,Lepidopsetta,genus,Lepidopsetta polyxystra,Lepidopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1390,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1476,Hippoglossoides,genus,Hippoglossoides elassodon,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1476,Hippoglossoides,genus,Hippoglossoides robustus,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1476,Pleuronectidae,family,Isopsetta isolepis,Isopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1476,Pleuronectidae,family,Parophrys vetulus,Parophrys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1476,Pleuronectidae,family,Psettichthys melanostictus,Psettichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1476,Pleuronectidae 3,family,Hippoglossoides elassodon,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1476,Pleuronectidae 3,family,Hippoglossoides robustus,Hippoglossoides,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1476,Pleuronectidae 3,family,Isopsetta isolepis,Isopsetta,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1476,Pleuronectidae 3,family,Parophrys vetulus,Parophrys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
+ASV_1476,Pleuronectidae 3,family,Psettichthys melanostictus,Psettichthys,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_1508,Limanda aspera,species,Limanda aspera,Limanda,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1528,Pleuronectes quadrituberculatus,species,Pleuronectes quadrituberculatus,Pleuronectes,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_1559,Hippoglossus stenolepis,species,Hippoglossus stenolepis,Hippoglossus,Pleuronectidae,Pleuronectiformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
