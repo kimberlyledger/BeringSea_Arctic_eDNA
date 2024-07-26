@@ -1,9 +1,11 @@
 ---
-title: "deeper look at pcr replicate variability"
+title: "PCR replicate decontamination and biological replicate summary"
 author: "Kimberly Ledger"
 date: "2024-07-02"
 output: html_document
 ---
+
+latest update: 24 July 2024
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -249,17 +251,9 @@ asv_table_filter2 <- asv_table_filter1 %>%
 
 now lets see how many of these ASVs have taxonomic IDs (these are not final tax ids)
 ```{r}
-taxonomy <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240709.csv") %>%
-  select(!X) %>% 
-  mutate(taxon = ifelse(ASV == "ASV_0898", "Hippoglossus stenolepis", taxon)) %>%  ### manually fix a couple entries 
-  mutate(taxon = ifelse(ASV == "ASV_1476", "Hippoglossoides", taxon)) %>%
-  mutate(taxonomic_level = ifelse(ASV == "ASV_1476", "genus", taxonomic_level)) %>%
-  unique()
-
-missing_tax <- data.frame(ASV = c("ASV_0016"), taxon = "Mallotus villosus", taxonomic_level = "species")   ### need to go back and fix this in the taxonomy output at some point.. 
-
-taxonomy <- taxonomy %>%
-  bind_rows(missing_tax)
+taxonomy <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240725_collapsed.csv") %>%
+  select(!X) %>%
+  rename(ASV = qseqid)
 ```
 
 ```{r}
@@ -297,14 +291,95 @@ asv_table_filter2_with_tax %>%
   group_by(ASV) %>%
   summarize(total_reads = sum(reads, na.rm = T))
 ```
+double check the ASV's with >10,000 reads 
 
-28 is human. 
-33 is Gadus chalcogrammus  ### TO DO - figure out why this was removed. 
-50 is Oncorhynchus keta 
-61 is Bos 
+28 = human 
+46 = Pleurogrammus monopterygius ***
+51 = whiting/haddock - not in range 
+61 = Bos 
+64 = Gadidae
+82 = Liparis greeni
+98 = Cottus aleuticus  - double check other species in range? 
+103 = Oligocottus maculosus
+112 = Aptocyclus ventricosus
+123 = Artedius harringtoni
+127 = Sus
 
-NEED TO DOUBLE CHECK THESE!!!  some ASVs seem like they should be keepers. 
 
+adding a few of these manually 
+```{r}
+asv_table_filter2_with_tax <- asv_table_filter2_with_tax %>%
+  mutate(taxon = ifelse(ASV == "ASV_0046", "Pleurogrammus monopterygius", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0046", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0046", "Pleurogrammus monopterygius", species),
+         genus = ifelse(ASV == "ASV_0046", "Pleurogrammus", genus),
+         family = ifelse(ASV == "ASV_0046", "Hexagrammidae", family),
+         order = ifelse(ASV == "ASV_0046", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0046", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0046", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0046", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0064", "Gadidae", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0064", "family", taxonomic_level),
+         species = ifelse(ASV == "ASV_0064", NA, species),
+         genus = ifelse(ASV == "ASV_0064", NA, genus),
+         family = ifelse(ASV == "ASV_0064", "Gadidae", family),
+         order = ifelse(ASV == "ASV_0064", "Gadiformes", order),
+         class = ifelse(ASV == "ASV_0064", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0064", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0064", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0082", "Liparis greeni", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0082", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0082", "Liparis greeni", species),
+         genus = ifelse(ASV == "ASV_0082", "Liparis", genus),
+         family = ifelse(ASV == "ASV_0082", "Liparidae", family),
+         order = ifelse(ASV == "ASV_0082", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0082", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0082", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0082", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0098", "Cottus aleuticus", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0098", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0098", "Cottus aleuticus", species),
+         genus = ifelse(ASV == "ASV_0098", "Cottus", genus),
+         family = ifelse(ASV == "ASV_0098", "Cottidae", family),
+         order = ifelse(ASV == "ASV_0098", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0098", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0098", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0098", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0103", "Oligocottus maculosus", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0103", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0103", "Oligocottus maculosus", species),
+         genus = ifelse(ASV == "ASV_0103", "Oligocottus", genus),
+         family = ifelse(ASV == "ASV_0103", "Cottidae", family),
+         order = ifelse(ASV == "ASV_0103", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0103", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0103", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0103", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0112", "Aptocyclus ventricosus", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0112", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0112", "Aptocyclus ventricosus", species),
+         genus = ifelse(ASV == "ASV_0112", "Aptocyclus", genus),
+         family = ifelse(ASV == "ASV_0112", "Cyclopteridae", family),
+         order = ifelse(ASV == "ASV_0112", "Pleuronectiformes", order),
+         class = ifelse(ASV == "ASV_0112", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0112", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0112", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0123", "Artedius harringtoni", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0123", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0123", "Artedius harringtoni", species),
+         genus = ifelse(ASV == "ASV_0123", "Artedius", genus),
+         family = ifelse(ASV == "ASV_0123", "Cottidae", family),
+         order = ifelse(ASV == "ASV_0123", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0123", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0123", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0123", "Eukaryota", kingdom))
+```
+
+```{r}
+asv_table_filter2_with_tax %>%
+  filter(is.na(taxon)) %>%
+  group_by(ASV) %>%
+  summarize(total_reads = sum(reads, na.rm = T))
+```
 
 remove ASVs with no taxonomic id
 ```{r}
@@ -351,8 +426,7 @@ asvs_PCRN
 
 okay, so subtracting the max reads in the pcr negative would remove quite a few pink salmon (asv 13) occurrences from 20240423 run.  probably don't want to use that approach.  
 
-how about using mean read count per ASV in the negative controls as the cutoff value
-
+i will use the mean read count per ASV in the negative controls as the cutoff value
 ```{r}
 asvs_PCRN_mean <- asvs_PCRN %>%
   select(!total) %>%
@@ -531,7 +605,7 @@ alrighty, depending on how i end up handling field samples, the high dissimilari
 
 
 ```{r}
-#write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_20240710.csv")
+write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_asv_table.csv")
 ```
 
 
@@ -543,13 +617,18 @@ but first let's check how many pcr reps each extraction has
 
 are there any samples that have made it to this point that don't actually have any reads? 
 ```{r}
-ZeroReadCount <- asv_table_filter4 %>%
+ZeroReadCount_summary <- asv_table_filter4 %>%
   group_by(sample_ID_date, sample_type) %>%
   summarise(total_reads = sum(reads)) %>%
   filter(total_reads == 0) %>%
   group_by(sample_type) %>%
   summarize(total = n())
-ZeroReadCount 
+ZeroReadCount_summary 
+
+ZeroReadCount <- asv_table_filter4 %>%
+  group_by(sample_ID_date, sample_type) %>%
+  summarise(total_reads = sum(reads)) %>%
+  filter(total_reads == 0)
 ```
 
 quite a few negative and also many samples without any sequencing reads 
@@ -569,6 +648,11 @@ OneRep <- asv_table_filter5 %>%
   group_by(sample_type) %>%
   summarize(total = n())
 OneRep
+
+OneRep_toremove <- asv_table_filter5 %>%
+  group_by(extraction_ID, sample_type) %>%
+  summarise(nrep = n_distinct(sample_ID_date)) %>%
+  filter(nrep == 1)
 ```
 
 how many extractions have two pcr replicates? 
@@ -593,119 +677,52 @@ ThreeRep <- asv_table_filter5 %>%
 ThreeRep
 ```
 
-
-how do these numbers change if i set a pretty low read count per pcr replicate threshold to filter? 
-
+only keep extractions where at least 2 of the PCR replicates have reads 
 ```{r}
-reads_per_pcr_rep <- asv_table_filter5 %>%
-  group_by(sample_ID_date, sample_type) %>%
-  summarise(tot_reads = sum(reads))   ##1737
-
-atleast_500 <- reads_per_pcr_rep %>%
-  filter(tot_reads >= 500)            ##1350
+asv_table_filter6 <- asv_table_filter5 %>% 
+  filter(!extraction_ID %in% OneRep_toremove$extraction_ID)
 ```
 
+
+now i'm switching from filtering by the pcr replicate level, and going to consider reads per bottle of water (extraction_ID / biological replicate)
+also going to work at the taxon level, instead of with ASVs 
+
 ```{r}
-asv_table_filter6 <- asv_table_filter5 %>%
-  filter(sample_ID_date %in% atleast_500$sample_ID_date)
+taxon_table_1 <- asv_table_filter6 %>%
+  group_by(extraction_ID, project_year, project, collection_year, sample_type, taxon, taxonomic_level, species, genus, family, order, class) %>%
+  summarize(tot_reads = sum(reads))
 ```
 
-how many extractions (excluding the ones with zero reads) have only one pcr replicate? 
-```{r}
-OneRep <- asv_table_filter6 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep == 1) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())
-OneRep
-```
-
-how many extractions have two pcr replicates? 
-```{r}
-TwoRep <- asv_table_filter6 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep == 2) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())  
-TwoRep
-```
-
-how many extractions have three pcr replicates? 
-```{r}
-ThreeRep <- asv_table_filter6 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep >= 3) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())  
-ThreeRep
-```
-
-just to remind myself, how many extractions from samples should there be if everything was perfect? 
-```{r}
-sample_metadata %>%
-  filter(sample_type == "sample") %>%
-  select(extraction_ID) %>%
-  unique() %>%
-  summarize(count = n())
-```
-
-okay, so with decontamination and no read filter it looks like 467+19 = 486 out of the 489 field samples have two or more pcr replicates with reads. 
-after filtering out pcr reps with <500 reads, we are down to 348+68 =  416 out of the 489 field samples have two or more pcr replicates with reads.
+let's get to the accumulation curve using extraction IDs 
 
 read in some metadata that groups extractions IDs into sites 
 ```{r}
 metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_metadata.csv") 
 
 metadata_mini <- metadata %>%
-  select(extraction_ID, project, collection_year, location1, depth, longitude, latitude)  ## this set up doesn't work for DBO sample format right now - will need to fix 
+  select(extraction_ID, project, collection_year, location1, depth, longitude, latitude)
 ```
 
 
-what are some of these samples with < 500 reads?  let me pull them out on the accumulation curve. 
+iNext crashes easily because of too many samples.  will need to break this up by project and year and subsets of samples...
 ```{r}
-lessthan_500 <- reads_per_pcr_rep %>%
-  filter(sample_type == "sample") %>%
-  filter(tot_reads < 500) %>%
-  separate(sample_ID_date, into = c("extraction_ID", "rep", "seq_date2"), sep = "-", remove = F) %>%
-  left_join(metadata_mini)
-```
-
-```{r}
-bottles_lessthan_2500 <- reads_per_bottle%>%
-  filter(sample_type == "sample") %>%
-  filter(tot_reads < 2500) %>%
-  left_join(metadata_mini)
-```
-
-
-now, let's get to the accumulation curve thing. will start by running this by pcr reps and then can also try by extraction IDs. 
-
-iNext seems to crash because of too many samples.  let me break this up by project and year to see if it helps.
-```{r}
-#NBS_2021 <- asv_table_filter5 %>%
-#  filter(project_year == "NBS_2021")
-
-NBS_2021 <- asv_table_filter7 %>%
+NBS_2021 <- taxon_table_1 %>%
   filter(project_year == "NBS_2021")
 
-#NBS_2022 <- asv_table_filter5 %>%
-#  filter(project_year == "NBS_2022")
+NBS_2022 <- taxon_table_1 %>%
+  filter(project_year == "NBS_2022")
 
-#SBS_2022 <- asv_table_filter5 %>%
-#  filter(project_year == "SBS_2022")
+SBS_2022 <- taxon_table_1 %>%
+  filter(project_year == "SBS_2022")
 
-#NBS_2023 <- asv_table_filter5 %>%
- # filter(project_year == "NBS_2023")
-
-NBS_2023 <- taxon_table_filter7 %>%
+NBS_2023 <- taxon_table_1 %>%
   filter(project_year == "NBS_2023")
+
+DBO_2023 <- taxon_table_1 %>%
+  filter(project_year == "DBO_2023")
 ```
 
-okay, still crashes with just NBS 2021. let's approach this another way.
-
+join with some metadata 
 ```{r}
 NBS_2021_w_meta <- NBS_2021 %>%
   left_join(metadata_mini)
@@ -726,33 +743,26 @@ try out accumulation curve to evaluate sequencing depth
 library(iNEXT)
 library(ggplot2)
 
-#maybe "abundance" will be the easiest to format?
 # need N lists of species read counts 
 
-# taxon_table <- NBS_2023_w_meta %>%
-#   filter(sample_type == "sample") %>%       ##just going to do this for real samples for now. 
-#    group_by(sample_ID_date, location1, taxon) %>%
-#    summarize(total_reads = sum(reads)) %>%
-#    pivot_wider(names_from = taxon, values_from = total_reads)
-# taxon_table
-
-taxon_table <- NBS_2021_w_meta %>%
-  filter(sample_type == "sample") %>%       ##just going to do this for real samples for now. 
+taxon_table_2 <- NBS_2021_w_meta %>%
    pivot_wider(names_from = taxon, values_from = tot_reads)
-taxon_table
+taxon_table_2
 
 # now convert the taxon table to lists of species abundances (one list per pcr rep)
 
+# make a variable for the first and last ASV column in the table
+tax_first <- which(colnames(taxon_table_2) == "Acantholumpenus mackayi")  
+tax_last <- ncol(taxon_table_2)
+
 # okay, need to go back to long format 
-taxon_long <- taxon_table %>%
-  #pivot_longer(cols = c(3:114), names_to = "taxon", values_to = "reads") %>%    #### CHECK COLUMN VALUES!!!
-  pivot_longer(cols = c(10:121), names_to = "taxon", values_to = "reads") %>%    #### CHECK COLUMN VALUES!!!
+taxon_long <- taxon_table_2 %>%
+  pivot_longer(cols = tax_first:tax_last, names_to = "taxon", values_to = "reads") %>%    
   filter(reads > 0) %>% # filter out entries with no reads
-  #arrange(sample_ID_date, desc(reads))
   arrange(extraction_ID, desc(reads))  # sort reads in descending order and group by sample
 
 st <- taxon_long %>%
-  filter(location1 %in% c("32"))
+  filter(location1 %in% c("5"))
 
 # Nest the data to create a list of species reads for each sample
 read_lists <- st %>%
@@ -779,58 +789,34 @@ read_lists_vector <- map(read_list_final, ~ {
     pull(reads)
 })
 
-# subset to test how it works 
-#mini_list <- head(read_lists_vector, 8)
+# knots is the number of intervals
+# endpoint is the max read count 
+# m can designate sample size 
 
 # try to run iNEXT - the function doesn't like non-integers so lots of warning will pop up.
-#out_mini <- iNEXT(mini_list, q = 0, datatype = "abundance")
-#out_nbs2021_st5 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2021_st29 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2021_st23 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2022_st7 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2022_st16 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2022_st37 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_sbs2022_st16 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_sbs2022_st20 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2023_st23 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
 #out_nbs2023_st38 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
 #out_nbs2023_st2_80knots <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", knots = 80, endpoint = 100000) 
-#out_nbs2023_st12_23_38_43 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance") 
-
-out_nbs2021_st46 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", knots = 80)
+#out_nbs2021_st46 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", knots = 80)
 
 #set a series of sample sizes for (m) 
 m <- c(1,50,100,250,500,1000,2000,3000,4000,5000,10000,20000,30000,40000)
 
-out_nbs2021_st32_m <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", size = m)
+out_nbs2021_st20_m <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", size = m)
+out_nbs2021_st5_m <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", size = m)
 
-
-## add a max endpoint ? say endpoint = 60000
 ```
 
 check out the output 
 ```{r}
-out_nbs2021$DataInfo
-out_nbs2021$iNextEst
-out_nbs2021$AsyEst
+out_nbs2021_st20_m$DataInfo
+out_nbs2021_st20_m$iNextEst
+out_nbs2021_st20_m$AsyEst
 ```
  
-plot the output  - i'm getting color plot errors when there are more then 8 
-```{r}
-# Assuming 'out' is your iNEXT object
-#unique_assemblages <- length(unique(out$DataInfo$Assemblage))
 
-#library(RColorBrewer)
-# Generate a color palette with the required number of colors
-#palette <- brewer.pal(n = unique_assemblages, name = "Set3")
-
-#ggiNEXT(out_nbs2021_st5, type = 1, color.var = "Assemblage") #+ 
-  #scale_colour_manual(values = palette)
-```
- 
 custom plot since ggiNEXT is giving me color problems 
 ```{r}
-df <- fortify(out_nbs2021_st32_m, type=1)
+df <- fortify(out_nbs2021_st5_m, type=1)
 df.point <- df[which(df$Method=="Observed"),]
 df.line <- df[which(df$Method!="Observed"),]
 df.line$Method <- factor(df.line$Method,  c("Rarefaction", "Extrapolation"), c("Rarefaction", "Extrapolation"))
@@ -839,93 +825,48 @@ my_plot <- ggplot(df, aes(x=x, y=y, colour=Assemblage)) +
   geom_point(size=5, data=df.point) + 
   geom_line(aes(linetype=Method), lwd=1.5, data=df.line) + 
   geom_ribbon(aes(ymin=y.lwr, ymax=y.upr, fill=Assemblage, colour=NULL), alpha=0.2) + 
-  labs(x="Number of sequencing reads", y="Number of detected taxa", 
-       title = "NBS 2021 st32") + 
+  labs(x="number of sequencing reads per 1-L bottle", y="Number of detected taxa", 
+       title = "NBS 2021 Station 5") + 
   theme(legend.position = "bottom",  legend.title=element_blank(), text=element_text(size=18), legend.box = "vertical") +
-  xlim(0, 2000) + 
+  xlim(0, 10000) + 
   theme_minimal()
 my_plot
 ```
  
 ```{r}
-ggsave("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/accumulation_curves/NBS_2023_st12_23_38_43_zoom.png", plot = my_plot, dpi = 150, width = 8, height = 6)
+#ggsave("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/accumulation_curves/NBS_2023_st12_23_38_43_zoom.png", plot = my_plot, dpi = 150, width = 8, height = 6)
 ```
- 
-
-when working at the bottle level, it takes far more reads to reach a plateau... maybe around 2500 reads? 
-
-or around where richness reaches 95% (?) of max value. 
-
-
-right now i am visually picking a possible threshold. but what about a quantitative method? 
-
-note:  nbs2023 station 38 confuses me... 
-
-
-I'M NOT SURE THIS CODE IS CORRECT - got it from chatgpt
-okay, the plateau seems to be around 1000 reads - let's see if i can actually quantify that 
-```{r}
-# Extract the data for one of the assemblages
-data_curve <- out_nbs2021_st5$iNextEst$size_based[out_nbs2021_st5$iNextEst$size_based$Assemblage == "e00614-C-20240423",]
-#data_curve <- out_nbs2022_st16$iNextEst$size_based[out_nbs2022_st16$iNextEst$size_based$Assemblage == "e01855-A-20240423",]
-
-# Fit a smoothing spline
-fit <- smooth.spline(data_curve$m, data_curve$qD)
-
-# Compute the derivative
-deriv <- predict(fit, data_curve$m, deriv = 1)
-
-# Plot the derivative to find where it approaches zero
-plot(data_curve$m, deriv$y, type = "l", main = "First Derivative of Accumulation Curve", xlab = "Sample Size", ylab = "Rate of Change")
-
-# Identify the plateau point
-threshold <- 0.01  # Define a threshold for the slope
-plateau_index <- which(abs(deriv$y) < threshold)[1]
-plateau_point <- data_curve$m[plateau_index]
-
-print(paste("The curve begins to plateau at sample size:", plateau_point))
-```
-
 
 ```{r}
 #extract iNEXT result 
-accumulation_data <- out_nbs2023_st12_23_38_43$iNextEst[[1]] 
-accumulation_data <- out_nbs2023_st2_80knots$iNextEst[[1]] 
-accumulation_data <- out_nbs2021_st46_m$iNextEst[[1]] 
+accumulation_data <- out_nbs2021_st5_m$iNextEst[[1]] 
+```
 
-%>%
-  filter(Assemblage == "e03351")
+maybe try to come back see if i can quantitatively determine the number of reads to be within x % of the max/observed species richness???? 
 
-# Load required library for non-linear modeling
-library(nls2)
+for now, i am going to aggregate data by the extraction ID and remove any extractions with less than 2000 reads total from the dataset. 
 
-# Fit a model (logistic growth model is often used)
-logistic_model <- nls(qD ~ SSlogis(m, Asym, xmid, scal),
-                      data = accumulation_data)
+```{r}
+bottles_lessthan_2000 <- taxon_table_1 %>%
+  group_by(extraction_ID, project_year, sample_type) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  filter(reads < 2000)
+```
 
-# Summary of the model
-summary(logistic_model)
+```{r}
+taxon_table_3 <- taxon_table_1 %>%
+  filter(!extraction_ID %in% bottles_lessthan_2000$extraction_ID)
+```
 
-# Predict species richness using the fitted model
-predicted_richness <- predict(logistic_model, newdata = accumulation_data)
-
-# Plot the accumulation curve with the fitted model
-ggplot(accumulation_data, aes(x = m, y = qD)) +
-  geom_point() +
-  geom_line(aes(y = predicted_richness), color = "blue") +
-  labs(x = "Sampling Effort", y = "Species Richness",
-       title = "Species Accumulation Curve with Fitted Logistic Model")
-
+```{r}
+write.csv(taxon_table_3, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_taxon_table.csv")
 ```
 
 
-okay, so for many samples the first non-1 m, the species richness reaches it's plateau.  
+
+ENDING THIS SCRIPT HERE! SWITCHING TO 3_prelim_figures.Rmd 
 
 
-
-determine if observed data point is on plateau. 
-
-COME BACK TO THIS ANALYSIS
 
 
 ## next closer look at SBS data
@@ -1120,482 +1061,6 @@ SBS_2022_x2 %>%
 ```
 
 so apart form station 18, the species showing up in the first library are mostly the same as the species in the second. 
-
-
-ALRIGHT - i don't think after decontamination my analyses rely on unique pcr replicate.  let me combine data for each bottle of water and retry out some of these analyses.  
-
-```{r}
-asv_table_filter7 <- asv_table_filter5 %>% 
-  group_by(extraction_ID, seq_date, project_year, project, collection_year, sample_type, ASV, taxon, taxonomic_level) %>%
-  summarize(tot_reads = sum(reads))
-
-taxon_table_filter7 <- asv_table_filter7 %>%
-  group_by(extraction_ID, seq_date, project_year, project, collection_year, sample_type, taxon, taxonomic_level) %>%
-  summarize(reads = sum(tot_reads))
-```
-
-
-
-```{r}
-reads_per_bottle <- taxon_table_filter7 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(tot_reads = sum(reads))   ##570
-
-bottle_atleast_2500 <- reads_per_bottle %>%
-  filter(tot_reads >= 2500)            ##485
-```
-
-now that i have a filtered dataframe, let me plot some relative abundance barplots for sampling stations 
-
-```{r}
-taxon_table_filter8 <- taxon_table_filter7 %>%
-  filter(extraction_ID %in% bottle_atleast_2500$extraction_ID) %>%
-  left_join(metadata_mini)
-```
-
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "NBS_2021") %>%
-  filter(location1 %in% c("2", "8", "11", "17")) %>%
-  filter(reads > 0) %>%
-  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "NBS 2021") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-the field negatives look the same as the samples. 
-
-now let's plot relative read abundance 
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "NBS_2021") %>%
-  filter(location1 %in% c("2", "8", "11", "17")) %>%
-  filter(reads > 0) %>%
-  group_by(extraction_ID) %>%
-  mutate(sum=sum(reads)) %>%
-  mutate(prop = reads/sum) %>%
-  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "relative read abundance (%)",
-    x = "sample ID",
-    title = "NBS 2021") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "NBS_2022") %>%
-  filter(location1 %in% c("13", "31", "16", "28")) %>%
-  filter(reads > 0) %>%
-  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "NBS 2022") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "NBS_2022") %>%
-  filter(location1 %in% c("13", "31", "16", "28")) %>%
-  filter(reads > 0) %>%
-  group_by(extraction_ID) %>%
-  mutate(sum=sum(reads)) %>%
-  mutate(prop = reads/sum) %>%
-  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "relative read abundance (%)",
-    x = "sample ID",
-    title = "NBS 2022") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "SBS_2022") %>%
-  filter(location1 %in% c("18", "24", "20")) %>%
-  filter(reads > 0) %>%
-  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "SBS_2022") %>%
-  filter(location1 %in% c("18", "24", "20")) %>%
-  filter(reads > 0) %>%
-  group_by(extraction_ID) %>%
-  mutate(sum=sum(reads)) %>%
-  mutate(prop = reads/sum) %>%
-  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "relative read abundance (%)",
-    x = "sample ID",
-    title = "SBS 2022") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "NBS_2023") %>%
-  filter(location1 %in% c("6", "7", "8", "9")) %>%
-  filter(reads > 0) %>%
-  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "NBS 2023") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-
-
-```{r}
-taxon_table_filter8 %>%
-  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "NBS_2023") %>%
-  filter(location1 %in% c("6", "7", "8", "9")) %>%
-  filter(reads > 0) %>%
-  group_by(extraction_ID) %>%
-  mutate(sum=sum(reads)) %>%
-  mutate(prop = reads/sum) %>%
-  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "relative read abundance (%)",
-    x = "sample ID",
-    title = "NBS 2023") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-
-## try dbo even though i don't have metadata.... 
-```{r}
-taxon_table_filter8 %>%
-  #unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "DBO_2023") %>%
-  filter(extraction_ID %in% c("e04103", "e04104", "e04105", "e04106", "e04107", "e04108", "e04109", "e04110", "e04111")) %>%
-  filter(reads > 0) %>%
-  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  #facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "DBO 2023") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-
-```{r}
-taxon_table_filter8 %>%
-  #unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
-  filter(project_year == "DBO_2023") %>%
-  filter(extraction_ID %in% c("e04103", "e04104", "e04105", "e04106", "e04107", "e04108", "e04109", "e04110", "e04111")) %>%
-  filter(reads > 0) %>%
-  group_by(extraction_ID) %>%
-  mutate(sum=sum(reads)) %>%
-  mutate(prop = reads/sum) %>%
-  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  theme_bw() +
-  #facet_grid(~station_depth, scales = "free_x") + 
-  labs(
-    y = "relative read abundance (%)",
-    x = "sample ID",
-    title = "DBO 2023") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-```
-
-
-okay, getting the taxa i would expect to from these plots 
-
-## let me summarize the taxa a bit more now 
-
-spp in DBO 2023 
-```{r}
-taxon_table_filter8 %>%
-  filter(sample_type == "sample") %>%
-  filter(project_year == "DBO_2023") %>%
-  filter(reads > 0) %>%
-  group_by(taxon) %>%
-  summarize(n_reads = sum(reads)) %>%
-  arrange(desc(n_reads))
-```
-
-spp in NBS 2021
-```{r}
-taxon_table_filter8 %>%
-  filter(sample_type == "sample") %>%
-  filter(project_year == "NBS_2021") %>%
-  filter(reads > 0) %>%
-  group_by(taxon) %>%
-  summarize(n_reads = sum(reads)) %>%
-  arrange(desc(n_reads))
-```
-
-spp in NBS 2022
-```{r}
-taxon_table_filter8 %>%
-  filter(sample_type == "sample") %>%
-  filter(project_year == "NBS_2022") %>%
-  filter(reads > 0) %>%
-  group_by(taxon) %>%
-  summarize(n_reads = sum(reads)) %>%
-  arrange(desc(n_reads))
-```
-
-spp in NBS 2023
-```{r}
-taxon_table_filter8 %>%
-  filter(sample_type == "sample") %>%
-  filter(project_year == "NBS_2023") %>%
-  filter(reads > 0) %>%
-  group_by(taxon) %>%
-  summarize(n_reads = sum(reads)) %>%
-  arrange(desc(n_reads))
-```
-
-spp in SBS 2022
-```{r}
-taxon_table_filter8 %>%
-  filter(sample_type == "sample") %>%
-  filter(project_year == "SBS_2022") %>%
-  filter(reads > 0) %>%
-  group_by(taxon) %>%
-  summarize(n_reads = sum(reads)) %>%
-  arrange(desc(n_reads))
-```
-
-
-let me get a feel for how happy i am with the salmon taxonomic assignments and read counts/proportions 
-
-```{r}
-salmon <- c("Oncorhynchus tshawytscha", "Oncorhynchus keta", "Oncorhynchus gorbuscha", "Oncorhynchus nerka", "Oncorhynchus mykiss", "Oncorhynchus kisutch", "Oncorhynchus")
-
-salmon_table <- taxon_table_filter8 %>%
-  filter(taxon %in% salmon) %>%
-  filter(reads > 0)
-
-salmon_table <- salmon_table %>%
-  group_by(project_year, taxon) %>%
-  summarize(tot_reads = sum(reads)) %>%
-  group_by(project_year) %>%
-  mutate(prop = tot_reads / sum(tot_reads)) 
-
-salmon_table %>%
-  select(-prop) %>%
-  pivot_wider(names_from = project_year, values_from = tot_reads)
-
-salmon_table %>%
-  select(-tot_reads) %>%
-  pivot_wider(names_from = project_year, values_from = prop)
-```
-
-okay so 2-15% of reads are undetermined Oncorhynchus. not too bad.  
-
-do these species proportions make sense relative to catch data?? 
-
-how about gadids  
-```{r}
-gadidae <- c("Gadus chalcogrammus", "Gadus macrocephalus", "Eleginus gracilis", "Boreogadus saida", "Microgadus proximus", "Arctogadus glacialis", "Gadus", "Gadidae")
-
-gadidae_table <- taxon_table_filter8 %>%
-  filter(taxon %in% gadidae) %>%
-  filter(reads > 0)
-
-gadidae_table <- gadidae_table %>%
-  group_by(project_year, taxon) %>%
-  summarize(tot_reads = sum(reads)) %>%
-  group_by(project_year) %>%
-  mutate(prop = tot_reads / sum(tot_reads)) 
-
-gadidae_table %>%
-  select(-prop) %>%
-  pivot_wider(names_from = project_year, values_from = tot_reads)
-
-gadidae_table %>%
-  select(-tot_reads) %>%
-  pivot_wider(names_from = project_year, values_from = prop)
-```
-
-
-what about overall taxonmic assignment 
-```{r}
-taxon_table_filter8 %>%
-  filter(reads > 0) %>%
-  group_by(taxonomic_level) %>%
-  summarize(tot_reads = sum(reads)) %>%
-  mutate(prop = tot_reads / sum(tot_reads))
-```
-
-```{r}
-taxon_table_filter8 %>%
-  filter(reads > 0) %>%
-  group_by(taxonomic_level) %>%
-  summarize(tot_taxa = n_distinct(taxon)) %>%
-  mutate(prop_taxa = tot_taxa / sum(tot_taxa))
-```
-
-
-
-number of bottles that don't pass filters
-```{r}
-bottles_lessthan_2500 %>%
-  group_by(project, collection_year) %>%
-  summarize(n = n())
-```
-
-how many total DBO bottles were there from 2023? 
-```{r}
-metadata %>%
-  filter(project == "DBO") %>%
-  filter(collection_year == "2023") %>%
-  filter(sample_type == "sample") %>%
-  summarize(n = n())
-```
-
-25/150 (16%) of DBO are missing data - this seems reasonable givin the sampling at depth and high latitudes, i think 
-
-is the low prop of Pcod surprising??? 
-
-alright so more may be to be done on the data filtering/aggregation side, but let me export the table and see if i can have fun making some maps :) 
-
-```{r}
-write.csv(taxon_table_filter8, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxon_table.csv", row.names = F)
-```
-
-
-if i just consider the NBS and DBO, what are my most common taxa and what proportion of reads do they make up? 
-
-```{r}
-taxa_prop <- taxon_table_filter8 %>%
-  filter(sample_type == "sample") %>%
-  filter(project_year != "SBS_2022") %>%
-  filter(reads > 0) %>%
-  group_by(taxon) %>%
-  summarize(n_reads = sum(reads)) %>%
-  mutate(prop = 100*(n_reads / sum(n_reads))) %>%
-  arrange(desc(prop))
-taxa_prop
-```
-
-after referencing some catch data, perhaps Stichaeidae 1 is Lumpenus sagitta 
-
-
-the top 18 taxa make what proportion of reads? 
-```{r}
-sum(taxa_prop[1:18,]$prop)
-```
-
-i'm not sure if the bottle replicates at a site are consistent enough to warrent quantitative metabarcoding.  there's probably a limit on how much the qm calibration can help replicates that are dissimilar. 
-
-
-
-
-
 
 
 

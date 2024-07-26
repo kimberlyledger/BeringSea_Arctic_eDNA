@@ -1,33 +1,36 @@
 qseqid,taxon,taxonomic_level,species,genus,family,order,class,phylum,kingdom,seq_percID,id_rank,top_perc,diff
-ASV_0079,Leptoclinus maculatus,species,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0619,Leptoclinus maculatus,species,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0004,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0004,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0015,Anisarchus medius,species,Anisarchus medius,Anisarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0065,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0065,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0087,Stichaeidae 2,family,Eumesogrammus praecisus,Eumesogrammus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0087,Stichaeidae 2,family,Opisthocentrus ocellatus,Opisthocentrus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0122,Stichaeidae 2,family,Eumesogrammus praecisus,Eumesogrammus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0122,Stichaeidae 2,family,Opisthocentrus ocellatus,Opisthocentrus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0152,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0152,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0174,Anisarchus medius,species,Anisarchus medius,Anisarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0183,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0183,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0210,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0210,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0235,Lumpenus sagitta,species,Lumpenus sagitta,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0240,Agonidae,family,Leptagonus decagonus,Leptagonus,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0240,Agonidae,family,Sarritor frenatus,Sarritor,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0240,Agonidae 1,family,Leptagonus decagonus,Leptagonus,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0240,Agonidae 1,family,Sarritor frenatus,Sarritor,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0243,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0243,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0247,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0247,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0370,Anisarchus medius,species,Anisarchus medius,Anisarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0349,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0349,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0392,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0392,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0426,Anisarchus medius,species,Anisarchus medius,Anisarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0433,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0433,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0603,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0603,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0653,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0653,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0663,Agonidae 2,family,Chesnonia verrucosa,Chesnonia,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0663,Agonidae 2,family,Occella dodecaedron,Occella,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0699,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0699,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0798,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -36,10 +39,12 @@ ASV_0854,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perc
 ASV_0854,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0862,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0862,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_0881,Anisarchus medius,species,Anisarchus medius,Anisarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0877,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0877,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_0927,Stichaeidae 2,family,Eumesogrammus praecisus,Eumesogrammus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0927,Stichaeidae 2,family,Opisthocentrus ocellatus,Opisthocentrus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.401,4,99.408,0.007
 ASV_0997,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0997,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1055,Anisarchus medius,species,Anisarchus medius,Anisarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1094,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1094,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1105,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -50,35 +55,31 @@ ASV_1245,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perc
 ASV_1245,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.225,1,98.225,0
 ASV_1287,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1287,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_1441,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.401,1,99.401,0
+ASV_1441,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.401,1,99.401,0
 ASV_1520,Stichaeidae 1,family,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1520,Stichaeidae 1,family,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0020,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0029,Liparis tunicatus,species,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0030,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0030,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0030,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0053,Liparis,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0053,Liparis,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0053,Liparis,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0053,Liparis 1,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0053,Liparis 1,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0053,Liparis 1,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0054,Gymnelus,genus,Gymnelus hemifasciatus,Gymnelus,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0054,Gymnelus,genus,Gymnelus viridis,Gymnelus,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0056,Liparis,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0056,Liparis,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0056,Liparis 1,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0056,Liparis 1,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0060,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0060,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0068,Anoplarchus,genus,Anoplarchus insignis,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0068,Anoplarchus,genus,Anoplarchus purpurescens,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0090,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
 ASV_0107,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0107,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0111,Xiphister,genus,Xiphister atropurpureus,Xiphister,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0111,Xiphister,genus,Xiphister mucosus,Xiphister,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_0146,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
 ASV_0163,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0163,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0163,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
-ASV_0165,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
-ASV_0167,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
 ASV_0178,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0178,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0178,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
@@ -109,8 +110,8 @@ ASV_0271,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes
 ASV_0271,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0282,Lycodes,genus,Lycodes pallidus,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
 ASV_0282,Lycodes,genus,Lycodes raridens,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
-ASV_0284,Liparis,genus,Liparis fabricii,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0284,Liparis,genus,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0284,Liparis 2,genus,Liparis fabricii,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0284,Liparis 2,genus,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0290,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0290,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0303,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
@@ -118,7 +119,9 @@ ASV_0303,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,A
 ASV_0315,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0315,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0315,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
-ASV_0319,Liparis tunicatus,species,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0332,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.214,1,98.214,0
+ASV_0332,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.214,1,98.214,0
+ASV_0332,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.214,1,98.214,0
 ASV_0335,Anoplarchus,genus,Anoplarchus insignis,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0335,Anoplarchus,genus,Anoplarchus purpurescens,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0346,Gymnelus,genus,Gymnelus hemifasciatus,Gymnelus,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -144,22 +147,24 @@ ASV_0417,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Percif
 ASV_0438,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0438,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0438,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
-ASV_0447,Liparis,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0447,Liparis,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0447,Liparis,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0455,Liparis,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0455,Liparis,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0455,Liparis,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0447,Liparis 1,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0447,Liparis 1,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0447,Liparis 1,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0455,Liparis 1,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0455,Liparis 1,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0455,Liparis 1,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0465,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0465,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
-ASV_0495,Liparis,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0495,Liparis,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
-ASV_0594,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.81,1,98.81,0
+ASV_0495,Liparis 1,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
+ASV_0495,Liparis 1,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0684,Gymnelus,genus,Gymnelus hemifasciatus,Gymnelus,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0684,Gymnelus,genus,Gymnelus viridis,Gymnelus,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_0757,Anoplarchus,genus,Anoplarchus insignis,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_0757,Anoplarchus,genus,Anoplarchus purpurescens,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_0807,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.81,1,98.81,0
+ASV_0809,Ammodytes,genus,Ammodytes hexapterus,Ammodytes,Ammodytidae,Uranoscopiformes,Actinopteri,Chordata,Eukaryota,99.398,1,99.398,0
+ASV_0809,Ammodytes,genus,Ammodytes personatus,Ammodytes,Ammodytidae,Uranoscopiformes,Actinopteri,Chordata,Eukaryota,99.398,1,99.398,0
+ASV_0872,Anarhichas,genus,Anarhichas denticulatus,Anarhichas,Anarhichadidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_0872,Anarhichas,genus,Anarhichas orientalis,Anarhichas,Anarhichadidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_0920,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_0920,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_0920,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
@@ -171,7 +176,6 @@ ASV_0978,Bathymaster,genus,Bathymaster signatus,Bathymaster,Bathymasteridae,Perc
 ASV_0981,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0981,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_0981,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
-ASV_0989,Liparis tunicatus,species,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1002,Anoplarchus,genus,Anoplarchus insignis,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1002,Anoplarchus,genus,Anoplarchus purpurescens,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
 ASV_1005,Xiphister,genus,Xiphister atropurpureus,Xiphister,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,1,99.408,0
@@ -188,21 +192,22 @@ ASV_1032,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Per
 ASV_1032,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.235,1,98.235,0
 ASV_1047,Anoplarchus,genus,Anoplarchus insignis,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
 ASV_1047,Anoplarchus,genus,Anoplarchus purpurescens,Anoplarchus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1088,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
 ASV_1217,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1217,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1217,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1236,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_1236,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
 ASV_1236,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.412,1,99.412,0
-ASV_1323,Leuroglossus schmidti,species,Leuroglossus schmidti,Leuroglossus,Bathylagidae,Argentiniformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_1331,Liparis,genus,Liparis fabricii,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_1331,Liparis,genus,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
-ASV_1346,Blepsias bilobus,species,Blepsias bilobus,Blepsias,Agonidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,1,98.817,0
-ASV_1353,Lycodes polaris,species,Lycodes polaris,Lycodes,Zoarcidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.405,1,99.405,0
+ASV_1331,Liparis 2,genus,Liparis fabricii,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_1331,Liparis 2,genus,Liparis tunicatus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_1413,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1413,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1413,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
+ASV_1415,Liparis 1,genus,Liparis bathyarcticus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_1415,Liparis 1,genus,Liparis gibbus,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_1415,Liparis 1,genus,Liparis ochotensis,Liparis,Liparidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_1436,Salvelinus,genus,Salvelinus alpinus,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
+ASV_1436,Salvelinus,genus,Salvelinus malma,Salvelinus,Salmonidae,Salmoniformes,Actinopteri,Chordata,Eukaryota,100,1,100,0
 ASV_1463,Hexagrammos,genus,Hexagrammos lagocephalus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1463,Hexagrammos,genus,Hexagrammos octogrammus,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0
 ASV_1463,Hexagrammos,genus,Hexagrammos stelleri,Hexagrammos,Hexagrammidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.824,1,98.824,0

@@ -1,0 +1,1243 @@
+---
+title: "exploring decontaminated metabarcoding reads"
+author: "Kimberly Ledger"
+date: "2024-07-25"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+libraries
+```{r}
+library(tidyverse)
+library(ggplot2)
+rename <- dplyr::rename
+```
+
+
+the data 
+```{r}
+taxon_table <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_taxon_table.csv") %>%
+  select(!X)
+
+metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_metadata.csv") 
+
+metadata_mini <- metadata %>%
+  select(extraction_ID, sample_type, project, collection_year, location1, location2, depth, longitude, latitude)
+```
+
+for now, i'm going to just work with field samples (i.e. ignore any reads in remaining field negatives, etc)
+```{r}
+dbo_21 <- metadata_mini %>%
+  filter(project == "DBO" & collection_year == "2021")
+
+taxon_table_meta <- metadata_mini %>%
+  filter(sample_type == "sample") %>%
+  filter(!extraction_ID %in% dbo_21$extraction_ID) %>%
+  left_join(taxon_table)
+```
+
+export to use with 
+```{r}
+write.csv(taxon_table_meta, "../outputs/taxon_table_w_meta.csv")
+```
+
+for now i'll just make some plots for DBO 2023
+
+spp in DBO 2023 
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(tot_reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(tot_reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_1") %>%
+  filter(tot_reads > 0) %>%
+  #ggplot(aes(x=extraction_ID, y=tot_reads, fill=taxon)) +
+  ggplot(aes(x=depth, y=tot_reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "depth",
+    title = "DBO Station 1 - 2023") + 
+  theme(
+    #axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r, fig.width=7.5, fig.height=5}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  #filter(location2 == "DBO_1") %>%
+  filter(location1 == "DBO_1.4") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  #ggplot(aes(x=extraction_ID, y=tot_reads, fill=taxon)) +
+  ggplot(aes(x=depth, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "depth",
+    title = "DBO Station 1 - 2023") + 
+  theme(
+    #axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_1") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  group_by(taxon) %>%
+  summarize(mean_prop = mean(prop)) %>%
+  arrange(desc(mean_prop))
+```
+
+```{r, fig.width=8.5, fig.height=5}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_2") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  #ggplot(aes(x=extraction_ID, y=tot_reads, fill=taxon)) +
+  ggplot(aes(x=depth, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "depth",
+    title = "DBO Station 2 - 2023") + 
+  theme(
+    #axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_2") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  group_by(taxon) %>%
+  summarize(mean_prop = mean(prop)) %>%
+  arrange(desc(mean_prop))
+```
+
+
+```{r, fig.width=8.5, fig.height=5}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_3") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  #ggplot(aes(x=extraction_ID, y=tot_reads, fill=taxon)) +
+  ggplot(aes(x=depth, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "depth",
+    title = "DBO Station 3 - 2023") + 
+  theme(
+    #axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_3") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  group_by(taxon) %>%
+  summarize(mean_prop = mean(prop)) %>%
+  arrange(desc(mean_prop))
+```
+
+```{r, fig.width=8.5, fig.height=5}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_4") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  #ggplot(aes(x=extraction_ID, y=tot_reads, fill=taxon)) +
+  ggplot(aes(x=depth, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "depth",
+    title = "DBO Station 4 - 2023") + 
+  theme(
+    #axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_4") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  group_by(taxon) %>%
+  summarize(mean_prop = mean(prop)) %>%
+  arrange(desc(mean_prop))
+```
+
+
+```{r, fig.width=8.5, fig.height=5}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_5") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  #ggplot(aes(x=extraction_ID, y=tot_reads, fill=taxon)) +
+  ggplot(aes(x=depth, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "depth",
+    title = "DBO Station 5 - 2023") + 
+  theme(
+    #axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_meta %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(location2 == "DBO_5") %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  group_by(taxon) %>%
+  summarize(mean_prop = mean(prop)) %>%
+  arrange(desc(mean_prop))
+```
+
+
+now let's plot relative read abundance 
+```{r}
+taxon_table_meta %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2021") %>%
+  filter(location1 %in% c("2", "8", "11", "17")) %>%
+  filter(tot_reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(tot_reads)) %>%
+  mutate(prop = tot_reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "NBS 2021") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+
+
+
+
+NEED TO CLEAN UP THIS CODE!!! 
+
+
+
+
+
+
+
+plot station1 
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_1") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO Station 1 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_1") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO Station 1 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+summary table of reads at station1 
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_1") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+plot station2
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_2") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO Station 2 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_2") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO Station 2 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_2") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+plot station3
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_3") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO Station 3 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_3") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO Station 3 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_3") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+
+
+plot station4
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_4") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO Station 4 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_4") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO Station 4 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_4") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+
+
+plot station1 
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_5") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO Station 5 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_5") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO Station 5 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "DBO_5") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+
+
+plot moorings (?)
+```{r}
+dbo23 %>%
+  filter(location2 %in% c("BF2", "CK9", "M8")) %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO BF2/CK9/M8 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+dbo23 %>%
+  filter(location2 %in% c("BF2", "CK9", "M8")) %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO BF2/CK9/M8 - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 %in% c("BF2", "CK9", "M8")) %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon, location1) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+plot BS
+```{r}
+dbo23 %>%
+  filter(location2 == "BS") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO BS - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "BS") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO BS - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "BS") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+
+plot IC
+```{r}
+dbo23 %>%
+  filter(location2 == "IC") %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO IC - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+dbo23 %>%
+  filter(location2 == "IC") %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~location1, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO IC - 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+dbo23 %>%
+  filter(location2 == "IC") %>%
+  filter(sample_type == "sample") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2021") %>%
+  filter(location1 %in% c("2", "8", "11", "17")) %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "NBS 2021") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+the field negatives look the same as the samples. 
+
+now let's plot relative read abundance 
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2021") %>%
+  filter(location1 %in% c("2", "8", "11", "17")) %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "NBS 2021") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2022") %>%
+  filter(location1 %in% c("13", "31", "16", "28")) %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "NBS 2022") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2022") %>%
+  filter(location1 %in% c("13", "31", "16", "28")) %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "NBS 2022") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "SBS_2022") %>%
+  filter(location1 %in% c("18", "24", "20")) %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "SBS 2022") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "SBS_2022") %>%
+  filter(location1 %in% c("18", "24", "20")) %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "SBS 2022") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2023") %>%
+  filter(location1 %in% c("6", "7", "8", "9")) %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "NBS 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+
+```{r}
+taxon_table_filter8 %>%
+  unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "NBS_2023") %>%
+  filter(location1 %in% c("6", "7", "8", "9")) %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "NBS 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+## try dbo even though i don't have metadata.... 
+```{r}
+taxon_table_filter8 %>%
+  #unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(extraction_ID %in% c("e04103", "e04104", "e04105", "e04106", "e04107", "e04108", "e04109", "e04110", "e04111")) %>%
+  filter(reads > 0) %>%
+  ggplot(aes(x=extraction_ID, y=reads, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  #facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "number of sequencing reads",
+    x = "sample ID",
+    title = "DBO 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+```{r}
+taxon_table_filter8 %>%
+  #unite(col = "station_depth", location1, depth, sep = "_", remove = F) %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(extraction_ID %in% c("e04103", "e04104", "e04105", "e04106", "e04107", "e04108", "e04109", "e04110", "e04111")) %>%
+  filter(reads > 0) %>%
+  group_by(extraction_ID) %>%
+  mutate(sum=sum(reads)) %>%
+  mutate(prop = reads/sum) %>%
+  ggplot(aes(x=extraction_ID, y=prop, fill=taxon)) +
+  geom_bar(stat = "identity") + 
+  theme_bw() +
+  #facet_grid(~station_depth, scales = "free_x") + 
+  labs(
+    y = "relative read abundance (%)",
+    x = "sample ID",
+    title = "DBO 2023") + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.95),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+
+okay, getting the taxa i would expect to from these plots 
+
+## let me summarize the taxa a bit more now 
+
+spp in DBO 2023 
+```{r}
+taxon_table_filter8 %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year == "DBO_2023") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+spp in NBS 2021
+```{r}
+taxon_table_filter8 %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year == "NBS_2021") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+spp in NBS 2022
+```{r}
+taxon_table_filter8 %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year == "NBS_2022") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+spp in NBS 2023
+```{r}
+taxon_table_filter8 %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year == "NBS_2023") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+spp in SBS 2022
+```{r}
+taxon_table_filter8 %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year == "SBS_2022") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  arrange(desc(n_reads))
+```
+
+
+let me get a feel for how happy i am with the salmon taxonomic assignments and read counts/proportions 
+
+```{r}
+salmon <- c("Oncorhynchus tshawytscha", "Oncorhynchus keta", "Oncorhynchus gorbuscha", "Oncorhynchus nerka", "Oncorhynchus mykiss", "Oncorhynchus kisutch", "Oncorhynchus")
+
+salmon_table <- taxon_table_filter8 %>%
+  filter(taxon %in% salmon) %>%
+  filter(reads > 0)
+
+salmon_table <- salmon_table %>%
+  group_by(project_year, taxon) %>%
+  summarize(tot_reads = sum(reads)) %>%
+  group_by(project_year) %>%
+  mutate(prop = tot_reads / sum(tot_reads)) 
+
+salmon_table %>%
+  select(-prop) %>%
+  pivot_wider(names_from = project_year, values_from = tot_reads)
+
+salmon_table %>%
+  select(-tot_reads) %>%
+  pivot_wider(names_from = project_year, values_from = prop)
+```
+
+okay so 2-15% of reads are undetermined Oncorhynchus. not too bad.  
+
+do these species proportions make sense relative to catch data?? 
+
+how about gadids  
+```{r}
+gadidae <- c("Gadus chalcogrammus", "Gadus macrocephalus", "Eleginus gracilis", "Boreogadus saida", "Microgadus proximus", "Arctogadus glacialis", "Gadus", "Gadidae")
+
+gadidae_table <- taxon_table_filter8 %>%
+  filter(taxon %in% gadidae) %>%
+  filter(reads > 0)
+
+gadidae_table <- gadidae_table %>%
+  group_by(project_year, taxon) %>%
+  summarize(tot_reads = sum(reads)) %>%
+  group_by(project_year) %>%
+  mutate(prop = tot_reads / sum(tot_reads)) 
+
+gadidae_table %>%
+  select(-prop) %>%
+  pivot_wider(names_from = project_year, values_from = tot_reads)
+
+gadidae_table %>%
+  select(-tot_reads) %>%
+  pivot_wider(names_from = project_year, values_from = prop)
+```
+
+
+what about overall taxonmic assignment 
+```{r}
+taxon_table_filter8 %>%
+  filter(reads > 0) %>%
+  group_by(taxonomic_level) %>%
+  summarize(tot_reads = sum(reads)) %>%
+  mutate(prop = tot_reads / sum(tot_reads))
+```
+
+```{r}
+taxon_table_filter8 %>%
+  filter(reads > 0) %>%
+  group_by(taxonomic_level) %>%
+  summarize(tot_taxa = n_distinct(taxon)) %>%
+  mutate(prop_taxa = tot_taxa / sum(tot_taxa))
+```
+
+
+
+number of bottles that don't pass filters
+```{r}
+bottles_lessthan_2500 %>%
+  group_by(project, collection_year) %>%
+  summarize(n = n())
+```
+
+how many total DBO bottles were there from 2023? 
+```{r}
+metadata %>%
+  filter(project == "DBO") %>%
+  filter(collection_year == "2023") %>%
+  filter(sample_type == "sample") %>%
+  summarize(n = n())
+```
+
+25/150 (16%) of DBO are missing data - this seems reasonable givin the sampling at depth and high latitudes, i think 
+
+is the low prop of Pcod surprising??? 
+
+alright so more may be to be done on the data filtering/aggregation side, but let me export the table and see if i can have fun making some maps :) 
+
+```{r}
+write.csv(taxon_table_filter8, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxon_table.csv", row.names = F)
+```
+
+
+if i just consider the NBS and DBO, what are my most common taxa and what proportion of reads do they make up? 
+
+```{r}
+taxa_prop <- taxon_table_filter8 %>%
+  filter(sample_type == "sample") %>%
+  filter(project_year != "SBS_2022") %>%
+  filter(reads > 0) %>%
+  group_by(taxon) %>%
+  summarize(n_reads = sum(reads)) %>%
+  mutate(prop = 100*(n_reads / sum(n_reads))) %>%
+  arrange(desc(prop))
+taxa_prop
+```
+
+after referencing some catch data, perhaps Stichaeidae 1 is Lumpenus sagitta 
+
+
+the top 18 taxa make what proportion of reads? 
+```{r}
+sum(taxa_prop[1:18,]$prop)
+```
+
+i'm not sure if the bottle replicates at a site are consistent enough to warrent quantitative metabarcoding.  there's probably a limit on how much the qm calibration can help replicates that are dissimilar. 
+
+
+
+
+
+
+
+

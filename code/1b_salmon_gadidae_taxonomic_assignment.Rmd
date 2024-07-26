@@ -41,7 +41,7 @@ seq_id_diff <- oncor %>%
   select(-`max(seq_percID)`) %>%
   ungroup() %>%
   group_by(qseqid) %>%
-      mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
+      #mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
        mutate(top_perc = max(seq_percID)) %>% # designate the highest % id for the best taxonomic hit in each sequence (in some, but not all cases, this is 100%)   %>%
       mutate(diff = top_perc - seq_percID) %>% # calculate the difference between the % identity of the top hit and each subsequent taxonomic hit
       arrange(diff)
@@ -92,6 +92,12 @@ oncorhynchus_df <- singleton_df %>%
 
 oncorhynchus_df$taxon <- gsub("_", " ", oncorhynchus_df$taxon)
 oncorhynchus_df$species <- gsub("_", " ", oncorhynchus_df$species)
+oncorhynchus_df$genus <- "Oncorhynchus"
+oncorhynchus_df$family <- "Salmonidae"
+oncorhynchus_df$order <- "Salmoniformes"
+oncorhynchus_df$class <- "Actinopteri"
+oncorhynchus_df$phylum <- "Chordata"
+oncorhynchus_df$kingdom <- "Eukaryota"
 
 #export 
 write.csv(oncorhynchus_df, "../outputs/oncorhynchus_asv_id.csv")
@@ -130,7 +136,7 @@ seq_id_diff <- gadidae %>%
   select(-`max(seq_percID)`) %>%
   ungroup() %>%
   group_by(qseqid) %>%
-      mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
+      #mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
        mutate(top_perc = max(seq_percID)) %>% # designate the highest % id for the best taxonomic hit in each sequence (in some, but not all cases, this is 100%)   %>%
       mutate(diff = top_perc - seq_percID) %>% # calculate the difference between the % identity of the top hit and each subsequent taxonomic hit
       arrange(diff)
@@ -159,7 +165,6 @@ singleton_df <- singletons %>%
   mutate(taxonomic_level = "species") %>%
   mutate(taxon = species) #%>%
   #select(qseqid, taxon, taxonomic_level)
-
 
 # if the match is Gadus macrocephalus and Gadus chalcogrammus - then go with the genus level 
 
@@ -202,6 +207,18 @@ gadidae_df <- singleton_df %>%
 
 gadidae_df$taxon <- gsub("_", " ", gadidae_df$taxon)
 gadidae_df$species <- gsub("_", " ", gadidae_df$species)
+gadidae_df <- gadidae_df %>%
+  mutate(genus = ifelse(species == "Gadus chalcogrammus", "Gadus", NA),
+         genus = ifelse(species == "Gadus macrocephalus", "Gadus", genus),
+         genus = ifelse(species == "Boreogadus saida", "Boreogadus", genus),
+         genus = ifelse(species == "Eleginus gracilis", "Eleginus", genus),
+         genus = ifelse(species == "Microgadus proximus", "Microgadus", genus),
+         genus = ifelse(species == "Arctogadus glacialis", "Arctogadus", genus))
+gadidae_df$family <- "Gadidae"
+gadidae_df$order <- "Gadiformes"
+gadidae_df$class <- "Actinopteri"
+gadidae_df$phylum <- "Chordata"
+gadidae_df$kingdom <- "Eukaryota"
 
 #export 
 write.csv(gadidae_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_asv_id.csv")

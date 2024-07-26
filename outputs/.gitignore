@@ -1,3 +1,6 @@
 accumulation_curves
 decontaminated_20240710.csv
 taxon_table.csv
+taxon_table_w_meta.csv
+decontaminated_taxon_table.csv
+decontaminated_asv_table.csv

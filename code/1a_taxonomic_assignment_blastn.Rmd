@@ -19,9 +19,9 @@ rename <- dplyr::rename
 ```
 
 ## load output from taxonkit 
-- this is the fasta seqs from the 20240703 run on dadasnake (i.e. duplicate sbs2022 libraries separated), and blastn using a ncbi nt database accessed on 2024-07-18  
+- this is the fasta seqs from the 20240703 run on dadasnake (i.e. duplicate sbs2022 libraries separated), and blastn using a ncbi nt database accessed on 2024-07-18 with 98% seq identity and 98% query coverage   
 ```{r load-output-from-taxonkit}
-taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/blastn_taxlineage.txt", header = FALSE, na.strings=c(""," ","NA"))
+taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/blastn_taxlineage_98.txt", header = FALSE, na.strings=c(""," ","NA"))
 
 head(taxonomy)
 ```
@@ -369,6 +369,9 @@ syn %>%
 tax_df_temp <- tax_df_2 %>%
   mutate(species = ifelse(species == "Gadus ogac", "Gadus macrocephalus", species),
          taxon = ifelse(taxon == "Gadus ogac", "Gadus macrocephalus", taxon),
+                  species =  ifelse(species == "Embassichthys bathybius", "Microstomus bathybius", species),
+         taxon = ifelse(taxon == "Embassichthys bathybius", "Microstomus bathybius", taxon),
+         genus = ifelse(genus == "Embassichthys", "Microstomus", genus),
          species =  ifelse(species == "Ulcina olrikii", "Aspidophoroides olrikii", species),
          taxon = ifelse(taxon == "Ulcina olrikii", "Aspidophoroides olrikii", taxon),
          genus = ifelse(genus == "Ulcina", "Aspidophoroides", genus),
@@ -388,11 +391,13 @@ tax_df_3 <- tax_df_temp %>%
 okay, now that out-of-range species have been removed, i need to remake the taxonomic table to reflect the more specific ids (hopefully)
 
 ## so now determine whether ASVs should be assigned to species genus, family, order, etc. 
+## going with a 0.5% similarity threshold
 ```{r}
 #remove taxon_level and taxon designations
 tax_df_3 <- tax_df_3 %>%
   select(!taxonomic_level) %>%
-  select(!taxon)
+  select(!taxon) %>%
+  filter(diff < 0.5)
 
 singletons <- tax_df_3 %>%
   select(qseqid) %>%
@@ -558,7 +563,7 @@ asv_headers <- gadidae$qseqid  #
 gadidae_seqs <- fasta_seqs[names(fasta_seqs) %in% asv_headers]
 
 # Write the filtered sequences to a new FASTA file
-#writeXStringSet(gadidae_seqs, filepath = output_file)
+writeXStringSet(gadidae_seqs, filepath = output_file)
 ```
 
 ## filter fasta to be just the gadids 
@@ -568,7 +573,7 @@ library(Biostrings)
 
 # Define the input and output file paths
 fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqs.fasta"
-output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/onchorhynchus.fasta"
+output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/oncorhynchus.fasta"
 
 # Read the FASTA file
 fasta_seqs <- readDNAStringSet(fasta_file)
@@ -580,9 +585,15 @@ asv_headers <- salmon$qseqid
 salmon_seqs <- fasta_seqs[names(fasta_seqs) %in% asv_headers]
 
 # Write the filtered sequences to a new FASTA file
-#writeXStringSet(salmon_seqs, filepath = output_file)
+writeXStringSet(salmon_seqs, filepath = output_file)
 ```
 
+in the command prompt: 
+(base) [kimberly.ledger@akc0ss-vu-134 outputs]$ blastn -query oncorhynchus.fasta -db ../custom_dbs/oncorhynchus_db -out oncorhynchus_results.txt -perc_identity 98 -qcov_hsp_perc 98 -num_threads 10 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids'
+
+blastn -query gadidae.fasta -db ../custom_dbs/gadidae_db -out gadidae_results.txt -perc_identity 98 -qcov_hsp_perc 98 -num_threads 10 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids'
+
+then see 1b_salmon_gadidae_taxonomic_assignment.Rmd
 
 okay, so i cleaned up reference seq and blasted the gadidae and salmon reads against custom dbs. let me compare the assignments. 
 
@@ -600,7 +611,7 @@ salmon_join <- salmon_original %>%
   arrange(qseqid)
 ```
 
-okay, so the cleaned up database doesn't get everything to species, but it surely does better. 
+looks like the 0.5% threshold does more to help than the custom reference db for salmon
 
 ```{r}
 gadidae_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_asv_id.csv") %>%
@@ -640,7 +651,7 @@ sebastidae <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export to make custom groups 
-#write.csv(sebastidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/sebastidae_pre.csv", row.names = F)
+write.csv(sebastidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/sebastidae_pre.csv", row.names = F)
 ```
 
 ```{r}
@@ -650,8 +661,10 @@ pleuronectidae <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export to make custom groups 
-#write.csv(pleuronectidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/pleuronectidae_pre.csv", row.names = F)
+write.csv(pleuronectidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/pleuronectidae_pre.csv", row.names = F)
 ```
+
+## continue here! 
 
 ```{r}
 cottidae <- tax_df_4 %>%
@@ -660,7 +673,7 @@ cottidae <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export to make custom groups 
-#write.csv(cottidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/cottidae_pre.csv", row.names = F)
+write.csv(cottidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/cottidae_pre.csv", row.names = F)
 ```
 
 okay, now just need to check out the missing tax ids 
@@ -676,7 +689,7 @@ remaining <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export for custom grouping 
-#write.csv(remaining, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/remaining_pre.csv", row.names = F)
+write.csv(remaining, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/remaining_pre.csv", row.names = F)
 ```
 
 
@@ -696,9 +709,7 @@ tax_df_5 <- single_species %>%
   bind_rows(pleuronectidae_post) %>%
   bind_rows(cottidae_post) %>%
   bind_rows(remaining_post) %>%
-  #select(qseqid, taxon, taxonomic_level, species) %>%
-  bind_rows(gadid_salmon_tax_df) #%>%
-  #unique()
+  bind_rows(gadid_salmon_tax_df)
 ```
 
 double check i didn't forget any ASVs in this process
@@ -717,61 +728,69 @@ if (match) {
   print("Not all rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
 }
 
-missing <- filtered_unique %>%
-  anti_join(tax_df_5)
-
-tax_df_2 %>%
-  filter(qseqid %in% missing$qseqid)
-
-tax_df_4 %>%
-  filter(qseqid %in% missing$qseqid)
-
-## top matches are not in range and diff to matches in range was over 0.5%. i'll add these back in manually. 
-
-missing$taxon <- c("Stichaeidae 2",  "Hexagrammos", "Ammodytes")
-missing$taxonomic_level <-c("family", "genus", "genus")
-
-tax_df_6 <- tax_df_5 %>%
-  bind_rows(missing)
-
-# Check if all elements in table1$qseqid are in table2$qseq
-match <- all(filtered_unique$qseqid %in% tax_df_6$qseqid)
-
-# Print result
-if (match) {
-  print("All rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
-} else {
-  print("Not all rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
-}
+# missing <- filtered_unique %>%
+#   anti_join(tax_df_5)
+# 
+# tax_df_2 %>%
+#   filter(qseqid %in% missing$qseqid)
+# 
+# tax_df_4 %>%
+#   filter(qseqid %in% missing$qseqid)
+# 
+# ## top matches are not in range and diff to matches in range was over 0.5%. i'll add these back in manually. 
+# 
+# missing$taxon <- c("Stichaeidae 2",  "Hexagrammos", "Ammodytes")
+# missing$taxonomic_level <-c("family", "genus", "genus")
+# 
+# tax_df_6 <- tax_df_5 %>%
+#   bind_rows(missing)
+# 
+# # Check if all elements in table1$qseqid are in table2$qseq
+# match <- all(filtered_unique$qseqid %in% tax_df_6$qseqid)
+# 
+# # Print result
+# if (match) {
+#   print("All rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
+# } else {
+#   print("Not all rows in 'qseqid' column of table 1 match the rows in 'qseqid' column of table 2.")
+# }
 ```
 
 ## Create output taxonomy data frames
 ```{r}
 # and then collapse that down to just a single taxon per ASV
-final_tax_df <- tax_df_6 %>%
-  rename(ASV = qseqid) %>%
-  select(ASV, taxon, taxonomic_level)
+# can i collapse while keeping the taxonomy for the taxon....? 
+tax_df_6 <- tax_df_5 %>%
+  mutate(species = ifelse(taxonomic_level == "family", NA, species),
+         genus = ifelse(taxonomic_level == "family", NA, genus),
+         species = ifelse(taxonomic_level == "genus", NA, species)) %>%
+  select(qseqid, taxon, taxonomic_level, species, genus, family, order, class, phylum, kingdom) %>%
+  unique()
+
 ```
 
 ```{r}
-#write.csv(tax_df_6, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240724_uncollapsed.csv")
-#write.csv(final_tax_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240724.csv")
+write.csv(tax_df_5, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240725_uncollapsed.csv")
+write.csv(tax_df_6, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240725_collapsed.csv")
 ```
 
 how many unique taxa? 
 ```{r}
-length(unique(final_tax_df$taxon))
-unique(final_tax_df$taxon)
+length(unique(tax_df_6$taxon))
+unique(tax_df_6$taxon)
 ```
 
 output a table that has the taxon descriptions (i.e. what species make up a genus/family level assignment)
 ```{r}
-taxon_groups <- tax_df_6 %>%
-  select(taxon, taxonomic_level, species) %>%
-  unique() %>%
-  filter(!is.na(species))
+taxon_groups <- tax_df_5 %>%
+  select(!qseqid) %>%
+  select(!seq_percID) %>%
+  select(!id_rank) %>%
+  select(!top_perc) %>%
+  select(!diff) %>%
+  unique() 
 
-#write.csv(taxon_groups, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxon_groups_20240724.csv")
+write.csv(taxon_groups, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxon_groups.csv")
 ```
 
 
