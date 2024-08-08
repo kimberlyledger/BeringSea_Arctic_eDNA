@@ -28,7 +28,7 @@ sample_metadata$sample_ID_date <- gsub("_", "-", sample_metadata$sample_ID_date)
 
 check sequence table outputs
 ```{r}
-asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqTab.RDS") %>%
+asv_table <- readRDS("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240806/filtered.seqTab.RDS") %>%
   select(!Row.names)
 
 #transpose 
@@ -141,12 +141,30 @@ prop_asvs_in_positives_20240613 <- asv_table_with_sample_type %>%
 prop_asvs_in_positives_20240613
 ```
 
+```{r}
+prop_asvs_in_positives_DBO21 <- asv_table_with_sample_type %>%
+  filter(is.na(seq_date)) %>%
+  filter(sample_type == "positive") %>%
+  pivot_longer(cols = c(asv_first:asv_last), names_to = "ASV", values_to = "reads") %>%
+  group_by(sample_ID_date) %>%
+  mutate(TotalReadsPerSample = sum(reads)) %>%
+  mutate(Prop = reads/TotalReadsPerSample) %>%
+  group_by(ASV) %>%
+  summarise(max_prop = max(Prop)) %>%
+  arrange(desc(max_prop)) %>%
+  mutate(seq_date = NA)
+prop_asvs_in_positives_DBO21 
+```
+
+DBO21 positive control was the Haast's eagle 
+
 combine these tables
 ```{r}
 prop_asvs_in_positives <- prop_asvs_in_positives_20240423 %>%
   bind_rows(prop_asvs_in_positives_20240509) %>%
   bind_rows(prop_asvs_in_positives_20240611) %>%
-  bind_rows(prop_asvs_in_positives_20240613)
+  bind_rows(prop_asvs_in_positives_20240613) %>%
+  bind_rows(prop_asvs_in_positives_DBO21)
 ```
 
 
@@ -182,7 +200,7 @@ decontaminated_1 <- indexhop_table %>%
             median_q.5 = median(IndexHoppingReads),
             reads_q.95 = quantile(IndexHoppingReads, probs=0.95)) %>%
   filter(mean_reads > 0) %>%
-  filter(ASV != "ASV_0014")  ## remove the PC/sturgeon ASV
+  filter(ASV != "ASV_0015")  ## remove the PC/sturgeon ASV
 decontaminated_1  
 ```
 
@@ -251,7 +269,7 @@ asv_table_filter2 <- asv_table_filter1 %>%
 
 now lets see how many of these ASVs have taxonomic IDs (these are not final tax ids)
 ```{r}
-taxonomy <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240725_collapsed.csv") %>%
+taxonomy <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/taxonomy_20240806_collapsed.csv") %>%
   select(!X) %>%
   rename(ASV = qseqid)
 ```
@@ -294,84 +312,42 @@ asv_table_filter2_with_tax %>%
 double check the ASV's with >10,000 reads 
 
 28 = human 
-46 = Pleurogrammus monopterygius ***
-51 = whiting/haddock - not in range 
-61 = Bos 
-64 = Gadidae
-82 = Liparis greeni
-98 = Cottus aleuticus  - double check other species in range? 
-103 = Oligocottus maculosus
-112 = Aptocyclus ventricosus
-123 = Artedius harringtoni
-127 = Sus
-
+59 = Bos
+63 = Atlantic cod - why did this not also match pollock/pcod?
+88 = Liparis greeni
+102 = Cottus 
+131 = Sus
 
 adding a few of these manually 
 ```{r}
 asv_table_filter2_with_tax <- asv_table_filter2_with_tax %>%
-  mutate(taxon = ifelse(ASV == "ASV_0046", "Pleurogrammus monopterygius", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0046", "species", taxonomic_level),
-         species = ifelse(ASV == "ASV_0046", "Pleurogrammus monopterygius", species),
-         genus = ifelse(ASV == "ASV_0046", "Pleurogrammus", genus),
-         family = ifelse(ASV == "ASV_0046", "Hexagrammidae", family),
-         order = ifelse(ASV == "ASV_0046", "Perciformes", order),
-         class = ifelse(ASV == "ASV_0046", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0046", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0046", "Eukaryota", kingdom),
-         taxon = ifelse(ASV == "ASV_0064", "Gadidae", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0064", "family", taxonomic_level),
-         species = ifelse(ASV == "ASV_0064", NA, species),
-         genus = ifelse(ASV == "ASV_0064", NA, genus),
-         family = ifelse(ASV == "ASV_0064", "Gadidae", family),
-         order = ifelse(ASV == "ASV_0064", "Gadiformes", order),
-         class = ifelse(ASV == "ASV_0064", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0064", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0064", "Eukaryota", kingdom),
-         taxon = ifelse(ASV == "ASV_0082", "Liparis greeni", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0082", "species", taxonomic_level),
-         species = ifelse(ASV == "ASV_0082", "Liparis greeni", species),
-         genus = ifelse(ASV == "ASV_0082", "Liparis", genus),
-         family = ifelse(ASV == "ASV_0082", "Liparidae", family),
-         order = ifelse(ASV == "ASV_0082", "Perciformes", order),
-         class = ifelse(ASV == "ASV_0082", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0082", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0082", "Eukaryota", kingdom),
-         taxon = ifelse(ASV == "ASV_0098", "Cottus aleuticus", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0098", "species", taxonomic_level),
-         species = ifelse(ASV == "ASV_0098", "Cottus aleuticus", species),
-         genus = ifelse(ASV == "ASV_0098", "Cottus", genus),
-         family = ifelse(ASV == "ASV_0098", "Cottidae", family),
-         order = ifelse(ASV == "ASV_0098", "Perciformes", order),
-         class = ifelse(ASV == "ASV_0098", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0098", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0098", "Eukaryota", kingdom),
-         taxon = ifelse(ASV == "ASV_0103", "Oligocottus maculosus", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0103", "species", taxonomic_level),
-         species = ifelse(ASV == "ASV_0103", "Oligocottus maculosus", species),
-         genus = ifelse(ASV == "ASV_0103", "Oligocottus", genus),
-         family = ifelse(ASV == "ASV_0103", "Cottidae", family),
-         order = ifelse(ASV == "ASV_0103", "Perciformes", order),
-         class = ifelse(ASV == "ASV_0103", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0103", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0103", "Eukaryota", kingdom),
-         taxon = ifelse(ASV == "ASV_0112", "Aptocyclus ventricosus", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0112", "species", taxonomic_level),
-         species = ifelse(ASV == "ASV_0112", "Aptocyclus ventricosus", species),
-         genus = ifelse(ASV == "ASV_0112", "Aptocyclus", genus),
-         family = ifelse(ASV == "ASV_0112", "Cyclopteridae", family),
-         order = ifelse(ASV == "ASV_0112", "Pleuronectiformes", order),
-         class = ifelse(ASV == "ASV_0112", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0112", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0112", "Eukaryota", kingdom),
-         taxon = ifelse(ASV == "ASV_0123", "Artedius harringtoni", taxon),
-         taxonomic_level = ifelse(ASV == "ASV_0123", "species", taxonomic_level),
-         species = ifelse(ASV == "ASV_0123", "Artedius harringtoni", species),
-         genus = ifelse(ASV == "ASV_0123", "Artedius", genus),
-         family = ifelse(ASV == "ASV_0123", "Cottidae", family),
-         order = ifelse(ASV == "ASV_0123", "Perciformes", order),
-         class = ifelse(ASV == "ASV_0123", "Actinopteri", class),
-         phylum = ifelse(ASV == "ASV_0123", "Chordata", phylum),
-         kingdom = ifelse(ASV == "ASV_0123", "Eukaryota", kingdom))
+  mutate(taxon = ifelse(ASV == "ASV_0063", "Gadus", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0063", "genus", taxonomic_level),
+         species = ifelse(ASV == "ASV_0063", NA, species),
+         genus = ifelse(ASV == "ASV_0063", "Gadus", genus),
+         family = ifelse(ASV == "ASV_0063", "Gadidae", family),
+         order = ifelse(ASV == "ASV_0063", "Gadiformes", order),
+         class = ifelse(ASV == "ASV_0063", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0063", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0063", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0088", "Liparis greeni", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0088", "species", taxonomic_level),
+         species = ifelse(ASV == "ASV_0088", "Liparis greeni", species),
+         genus = ifelse(ASV == "ASV_0088", "Liparis", genus),
+         family = ifelse(ASV == "ASV_0088", "Liparidae", family),
+         order = ifelse(ASV == "ASV_0088", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0088", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0088", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0088", "Eukaryota", kingdom),
+         taxon = ifelse(ASV == "ASV_0102", "Cottus", taxon),
+         taxonomic_level = ifelse(ASV == "ASV_0102", "genus", taxonomic_level),
+         species = ifelse(ASV == "ASV_0102", NA, species),
+         genus = ifelse(ASV == "ASV_0102", "Cottus", genus),
+         family = ifelse(ASV == "ASV_0102", "Cottidae", family),
+         order = ifelse(ASV == "ASV_0102", "Perciformes", order),
+         class = ifelse(ASV == "ASV_0102", "Actinopteri", class),
+         phylum = ifelse(ASV == "ASV_0102", "Chordata", phylum),
+         kingdom = ifelse(ASV == "ASV_0102", "Eukaryota", kingdom))
 ```
 
 ```{r}
@@ -604,8 +580,10 @@ asv_table_filter4 %>%
 alrighty, depending on how i end up handling field samples, the high dissimilarity and single pcr reps with seqs from field blanks may be able to stand out from the real samples.  
 
 
+no extraction or field negatives sequenced with 2021 DBO data 
+
 ```{r}
-write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_asv_table.csv")
+write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/decontaminated_asv_table.csv")
 ```
 
 

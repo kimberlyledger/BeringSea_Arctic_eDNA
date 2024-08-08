@@ -12,7 +12,7 @@ rename <- dplyr::rename
 
 input blastn results from custom salmon and gadid databases
 ```{r}
-oncor <- read.table("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/oncorhynchus_results.txt")  %>%
+oncor <- read.table("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/oncorhynchus_results.txt")  %>%
   filter(V4 > 100) %>% # make sure all retained matches are >100 bp
   select(-V5, -V6, -V7, -V8, -V9, -V10, -V11, -V12, -V13, -V14) %>%  #remove unnecessary columns
   group_by(V1, V2) %>% # group by the sequence key and the full taxonomy to reduce duplicate entries
@@ -100,14 +100,14 @@ oncorhynchus_df$phylum <- "Chordata"
 oncorhynchus_df$kingdom <- "Eukaryota"
 
 #export 
-write.csv(oncorhynchus_df, "../outputs/oncorhynchus_asv_id.csv")
+write.csv(oncorhynchus_df, "../outputs/20240806/oncorhynchus_asv_id.csv")
 ```
 
 
 now repeat for gadids 
 
 ```{r}
-gadidae <- read.table("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_results.txt")  %>%
+gadidae <- read.table("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/gadidae_results.txt")  %>%
   filter(V4 > 100) %>% # make sure all retained matches are >100 bp
   select(-V5, -V6, -V7, -V8, -V9, -V10, -V11, -V12, -V13, -V14) %>%  #remove unnecessary columns
   group_by(V1, V2) %>% # group by the sequence key and the full taxonomy to reduce duplicate entries
@@ -221,6 +221,6 @@ gadidae_df$phylum <- "Chordata"
 gadidae_df$kingdom <- "Eukaryota"
 
 #export 
-write.csv(gadidae_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_asv_id.csv")
+write.csv(gadidae_df, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/gadidae_asv_id.csv")
 ```
 

@@ -5,7 +5,7 @@ date: "2024-05-03"
 output: html_document
 ---
 
-latest updates - 24 July 2024
+latest updates - 7 August 2024
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -21,7 +21,7 @@ rename <- dplyr::rename
 ## load output from taxonkit 
 - this is the fasta seqs from the 20240703 run on dadasnake (i.e. duplicate sbs2022 libraries separated), and blastn using a ncbi nt database accessed on 2024-07-18 with 98% seq identity and 98% query coverage   
 ```{r load-output-from-taxonkit}
-taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/blastn_taxlineage_98.txt", header = FALSE, na.strings=c(""," ","NA"))
+taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240806/blastn_taxlineage_98.txt", header = FALSE, na.strings=c(""," ","NA"))
 
 head(taxonomy)
 ```
@@ -83,7 +83,7 @@ seq_id_diff <- taxon_df %>%
   select(-`max(seq_percID)`) %>%
   ungroup() %>%
   group_by(qseqid) %>%
-      mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
+      #mutate(id_rank = rank(desc(seq_percID), ties.method = "min")) %>% # rank the taxonomic hits per sequence by % id
        mutate(top_perc = max(seq_percID)) %>% # designate the highest % id for the best taxonomic hit in each sequence (in some, but not all cases, this is 100%)   %>%
       mutate(diff = top_perc - seq_percID) %>% # calculate the difference between the % identity of the top hit and each subsequent taxonomic hit
         arrange(diff)
@@ -93,13 +93,41 @@ Now you have the single best entry for each species for each sequence ranked and
 
 For sequences with multiple top hits, where the difference between ranked taxa = 0, you will end up defaulting to genus- or family-level ID. We'll do the same for any sequences where the difference between the first and second ranked taxa is < 1%.
 
+** if there is a sequence that is a 100% match, then keep just the sequences within 0.5%  
+** if there is NOT a 100% match, keep the top 1% 
+
+## ASVs with 100% match 
+```{r}
+match_100 <- seq_id_diff %>%
+  filter(top_perc == 100) %>%
+  select(qseqid) %>%
+  unique()
+
+match_lessthan100 <- seq_id_diff %>%
+  filter(top_perc != 100) %>%
+  select(qseqid) %>%
+  unique()
+```
+
+
+
 ## Figure out which differences are **> 1%** and eliminate those first
 ```{r}
 # filter out any taxa that are >1% less matching identity than the top taxonomic hit for a given sequence
-to_remove_low_perc_hits <- seq_id_diff %>%
+match_100_to_remove_low_perc_hits <- seq_id_diff %>%
   ungroup() %>%
+  filter(qseqid %in% match_100$qseqid) %>%
+  group_by(qseqid) %>%
+  filter(diff > 0.5)
+
+match_lessthan100_to_remove_low_perc_hits <- seq_id_diff %>%
+  ungroup() %>%
+  filter(qseqid %in% match_lessthan100$qseqid) %>%
   group_by(qseqid) %>%
   filter(diff > 1)
+
+to_remove_low_perc_hits <- match_100_to_remove_low_perc_hits %>%
+  bind_rows(match_lessthan100_to_remove_low_perc_hits)
 
 keepers <- seq_id_diff %>%
   anti_join(to_remove_low_perc_hits)
@@ -250,15 +278,23 @@ not_Actinopteri <- tax_df_2 %>%
 ## remove terrestrial/freshwater/out-of-range non-fish from data set 
 ```{r}
 not_Actinopteri_keepers <- not_Actinopteri %>% 
+  #class = Asteroidea - species = Asterias amurensis (North Pacific seastar) - seem reasonable to keep
+  #class = Aves - keeping murre and murrelet
   filter(order != "Galliformes") %>%  ### remove chicken, junglefowl 
-  filter(species != "Synthliboramphus wumizusume") %>% ### remove japanese murrelet
+  filter(species != "Harpagornis moorei") %>% ## definitely no extinct eagle from New Zealand... 
+  #family = Petromyzontidae - lamprey
   filter(!(family == "Petromyzontidae" & species != "Lethenteron camtschaticum")) %>% ### remove lamprey except Arctic lamprey 
+  #picoplankton
   filter(species != "Bathycoccus prasinos") %>% ### remove a picoplankton
-  filter(!(family == "Delphinidae" & species != "Lagenorhynchus obliquidens")) %>% ### remove dolphins expect Pacific white-sided 
+  #class = mammals
+  #order = Artiodactyla
   filter(!family == "Bovidae") %>% ### remove bovids
+  filter(!(family == "Delphinidae" & species != "Lagenorhynchus obliquidens")) %>% ### remove dolphins expect Pacific white-sided 
   filter(!family == "Suidae") %>% ### remove pigs 
-  filter(!species == "Pusa sibirica") %>% ### remove Baikal seal 
   filter(!family == "Cervidae") %>% ### remove moose 
+  #order = Carnivora
+  filter(!species == "Pusa sibirica") %>% ### remove Baikal seal 
+  filter(!species == "Pusa caspica") %>% ### remove Caspian seal 
   filter(!family == "Hominidae") %>% ### remove humans
   filter(!family == "Canidae") %>% ### remove dog
   select(species) %>%
@@ -369,20 +405,22 @@ syn %>%
 tax_df_temp <- tax_df_2 %>%
   mutate(species = ifelse(species == "Gadus ogac", "Gadus macrocephalus", species),
          taxon = ifelse(taxon == "Gadus ogac", "Gadus macrocephalus", taxon),
-                  species =  ifelse(species == "Embassichthys bathybius", "Microstomus bathybius", species),
+         species =  ifelse(species == "Embassichthys bathybius", "Microstomus bathybius", species),
          taxon = ifelse(taxon == "Embassichthys bathybius", "Microstomus bathybius", taxon),
-         genus = ifelse(genus == "Embassichthys", "Microstomus", genus),
+         genus = ifelse(species == "Microstomus bathybius", "Microstomus", genus),
          species =  ifelse(species == "Ulcina olrikii", "Aspidophoroides olrikii", species),
          taxon = ifelse(taxon == "Ulcina olrikii", "Aspidophoroides olrikii", taxon),
-         genus = ifelse(genus == "Ulcina", "Aspidophoroides", genus),
-         species = ifelse(species == "Polypera greeni", "Liparis greeni", species),
-         taxon = ifelse(taxon == "Polypera greeni", "Liparis greeni", taxon),
-         genus = ifelse(genus == "Polypera", "Liparis", genus))
+         genus = ifelse(species == "Aspidophoroides olrikii", "Aspidophoroides", genus),
+         #species = ifelse(species == "Polypera greeni", "Liparis greeni", species),
+         #taxon = ifelse(taxon == "Polypera greeni", "Liparis greeni", taxon),
+         #genus = ifelse(genus == "Polypera", "Liparis", genus),
+         species = ifelse(species == "Sardinops melanostictus", "Sardinops sagax", species),
+         taxon = ifelse(taxon == "Sardinops melanostictus", "Sardinops sagax", taxon))
 
 tax_df_2 %>%
-  filter(species == "Polypera greeni")
+  filter(species == "Embassichthys bathybius")
 tax_df_temp %>%
-  filter(species == "Liparis greeni")
+  filter(species == "Microstomus bathybius")
 
 tax_df_3 <- tax_df_temp %>%
   filter(species %in% all_in_range$Species)
@@ -391,13 +429,13 @@ tax_df_3 <- tax_df_temp %>%
 okay, now that out-of-range species have been removed, i need to remake the taxonomic table to reflect the more specific ids (hopefully)
 
 ## so now determine whether ASVs should be assigned to species genus, family, order, etc. 
-## going with a 0.5% similarity threshold
+## REMOVED : going with a 0.5% similarity threshold
 ```{r}
 #remove taxon_level and taxon designations
 tax_df_3 <- tax_df_3 %>%
   select(!taxonomic_level) %>%
-  select(!taxon) %>%
-  filter(diff < 0.5)
+  select(!taxon) #%>%
+  #filter(diff < 0.5)
 
 singletons <- tax_df_3 %>%
   select(qseqid) %>%
@@ -525,7 +563,7 @@ tax_df_4 <- bind_rows(single_kingdom, single_phylum, single_class, single_order,
 
 just so i can pick up on this without having to rerun all the code, let me export is verison of the tax_df
 ```{r}
-#write.csv(tax_df_4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/tax_df_20240724.csv")
+#write.csv(tax_df_4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/tax_df_20240806.csv")
 ```
  
 ## output a list of all the Gadidae ASVs
@@ -550,8 +588,8 @@ salmon <- tax_df_4 %>%
 library(Biostrings)
 
 # Define the input and output file paths
-fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqs.fasta"
-output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae.fasta"
+fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240806/filtered.seqs.fasta"
+output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/gadidae.fasta"
 
 # Read the FASTA file
 fasta_seqs <- readDNAStringSet(fasta_file)
@@ -572,8 +610,8 @@ writeXStringSet(gadidae_seqs, filepath = output_file)
 library(Biostrings)
 
 # Define the input and output file paths
-fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240703/filtered.seqs.fasta"
-output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/oncorhynchus.fasta"
+fasta_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240806/filtered.seqs.fasta"
+output_file <- "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/oncorhynchus.fasta"
 
 # Read the FASTA file
 fasta_seqs <- readDNAStringSet(fasta_file)
@@ -588,17 +626,17 @@ salmon_seqs <- fasta_seqs[names(fasta_seqs) %in% asv_headers]
 writeXStringSet(salmon_seqs, filepath = output_file)
 ```
 
-in the command prompt: 
-(base) [kimberly.ledger@akc0ss-vu-134 outputs]$ blastn -query oncorhynchus.fasta -db ../custom_dbs/oncorhynchus_db -out oncorhynchus_results.txt -perc_identity 98 -qcov_hsp_perc 98 -num_threads 10 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids'
+in the command prompt (eDNA VM): 
+(base) [kimberly.ledger@akc0ss-vu-134 outputs]$ blastn -query oncorhynchus.fasta -db ../../custom_dbs/oncorhynchus_db -out oncorhynchus_results.txt -perc_identity 98 -qcov_hsp_perc 98 -num_threads 10 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids'
 
-blastn -query gadidae.fasta -db ../custom_dbs/gadidae_db -out gadidae_results.txt -perc_identity 98 -qcov_hsp_perc 98 -num_threads 10 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids'
+blastn -query gadidae.fasta -db ../../custom_dbs/gadidae_db -out gadidae_results.txt -perc_identity 98 -qcov_hsp_perc 98 -num_threads 10 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore sscinames staxids'
 
 then see 1b_salmon_gadidae_taxonomic_assignment.Rmd
 
 okay, so i cleaned up reference seq and blasted the gadidae and salmon reads against custom dbs. let me compare the assignments. 
 
 ```{r}
-salmon_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/oncorhynchus_asv_id.csv") %>%
+salmon_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/oncorhynchus_asv_id.csv") %>%
   select(!X)
 
 salmon_original <- tax_df_4 %>%
@@ -614,7 +652,7 @@ salmon_join <- salmon_original %>%
 looks like the 0.5% threshold does more to help than the custom reference db for salmon
 
 ```{r}
-gadidae_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/gadidae_asv_id.csv") %>%
+gadidae_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/gadidae_asv_id.csv") %>%
   select(!X)
 
 gadidae_original <- tax_df_4 %>%
@@ -643,7 +681,7 @@ single_species <- tax_df_4 %>%
   filter(genus != "Oncorhynchus")
 ```
 
-for a few groups, let's just consider the species hits that are < 0.5% of the best match 
+for a few groups, let's export assignments and see if there are taxonomic groups that make sense to use 
 ```{r}
 sebastidae <- tax_df_4 %>%
   filter(taxonomic_level != "species")%>%
@@ -651,7 +689,7 @@ sebastidae <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export to make custom groups 
-write.csv(sebastidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/sebastidae_pre.csv", row.names = F)
+write.csv(sebastidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/sebastidae_pre.csv", row.names = F)
 ```
 
 ```{r}
@@ -661,10 +699,9 @@ pleuronectidae <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export to make custom groups 
-write.csv(pleuronectidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/pleuronectidae_pre.csv", row.names = F)
+write.csv(pleuronectidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/pleuronectidae_pre.csv", row.names = F)
 ```
 
-## continue here! 
 
 ```{r}
 cottidae <- tax_df_4 %>%
@@ -673,7 +710,7 @@ cottidae <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export to make custom groups 
-write.csv(cottidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/cottidae_pre.csv", row.names = F)
+write.csv(cottidae, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/cottidae_pre.csv", row.names = F)
 ```
 
 okay, now just need to check out the missing tax ids 
@@ -689,16 +726,16 @@ remaining <- tax_df_4 %>%
   filter(diff < 0.5)
 
 #export for custom grouping 
-write.csv(remaining, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/remaining_pre.csv", row.names = F)
+write.csv(remaining, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/remaining_pre.csv", row.names = F)
 ```
 
 
-read back in sebastidae, pleuro, and cottidae
+read back in taxonomic groups
 ```{r}
-sebastidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/sebastidae_post.csv")
-pleuronectidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/pleuronectidae_post.csv")
-cottidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/cottidae_post.csv")
-remaining_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/remaining_post.csv")
+sebastidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/sebastidae_post.csv")
+pleuronectidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/pleuronectidae_post.csv")
+cottidae_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/cottidae_post.csv")
+remaining_post <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/remaining_post.csv")
 ```
 
 
@@ -770,8 +807,8 @@ tax_df_6 <- tax_df_5 %>%
 ```
 
 ```{r}
-write.csv(tax_df_5, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240725_uncollapsed.csv")
-write.csv(tax_df_6, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxonomy_20240725_collapsed.csv")
+write.csv(tax_df_5, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/taxonomy_20240806_uncollapsed.csv")
+write.csv(tax_df_6, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/taxonomy_20240806_collapsed.csv")
 ```
 
 how many unique taxa? 
@@ -785,14 +822,9 @@ output a table that has the taxon descriptions (i.e. what species make up a genu
 taxon_groups <- tax_df_5 %>%
   select(!qseqid) %>%
   select(!seq_percID) %>%
-  select(!id_rank) %>%
   select(!top_perc) %>%
   select(!diff) %>%
   unique() 
 
-write.csv(taxon_groups, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/taxon_groups.csv")
+write.csv(taxon_groups, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/taxon_groups.csv")
 ```
-
-
-
-
