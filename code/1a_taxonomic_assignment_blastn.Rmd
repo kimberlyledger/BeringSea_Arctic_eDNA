@@ -19,7 +19,7 @@ rename <- dplyr::rename
 ```
 
 ## load output from taxonkit 
-- this is the fasta seqs from the 20240703 run on dadasnake (i.e. duplicate sbs2022 libraries separated), and blastn using a ncbi nt database accessed on 2024-07-18 with 98% seq identity and 98% query coverage   
+- this is the fasta seqs from the 20240806 run on dadasnake (i.e. duplicate sbs2022 libraries separated), and blastn using a ncbi nt database accessed on 2024-07-18 with 98% seq identity and 98% query coverage   
 ```{r load-output-from-taxonkit}
 taxonomy <-read.delim("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_20240806/blastn_taxlineage_98.txt", header = FALSE, na.strings=c(""," ","NA"))
 
@@ -108,7 +108,6 @@ match_lessthan100 <- seq_id_diff %>%
   select(qseqid) %>%
   unique()
 ```
-
 
 
 ## Figure out which differences are **> 1%** and eliminate those first
@@ -416,12 +415,10 @@ tax_df_temp <- tax_df_2 %>%
          #genus = ifelse(genus == "Polypera", "Liparis", genus),
          species = ifelse(species == "Sardinops melanostictus", "Sardinops sagax", species),
          taxon = ifelse(taxon == "Sardinops melanostictus", "Sardinops sagax", taxon))
-
 tax_df_2 %>%
   filter(species == "Embassichthys bathybius")
 tax_df_temp %>%
   filter(species == "Microstomus bathybius")
-
 tax_df_3 <- tax_df_temp %>%
   filter(species %in% all_in_range$Species)
 ```
@@ -429,13 +426,11 @@ tax_df_3 <- tax_df_temp %>%
 okay, now that out-of-range species have been removed, i need to remake the taxonomic table to reflect the more specific ids (hopefully)
 
 ## so now determine whether ASVs should be assigned to species genus, family, order, etc. 
-## REMOVED : going with a 0.5% similarity threshold
 ```{r}
 #remove taxon_level and taxon designations
 tax_df_3 <- tax_df_3 %>%
   select(!taxonomic_level) %>%
-  select(!taxon) #%>%
-  #filter(diff < 0.5)
+  select(!taxon)
 
 singletons <- tax_df_3 %>%
   select(qseqid) %>%
@@ -649,7 +644,6 @@ salmon_join <- salmon_original %>%
   arrange(qseqid)
 ```
 
-looks like the 0.5% threshold does more to help than the custom reference db for salmon
 
 ```{r}
 gadidae_custom <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/gadidae_asv_id.csv") %>%
@@ -665,7 +659,7 @@ gadidae_join <- gadidae_original %>%
   arrange(qseqid)
 ```
 
-i will go with the blast results using the custom db
+for salmon and gadids, i'll use the custom reference DB results 
 ```{r}
 gadid_salmon_tax_df <- gadidae_custom %>%
   bind_rows(salmon_custom)
@@ -803,7 +797,6 @@ tax_df_6 <- tax_df_5 %>%
          species = ifelse(taxonomic_level == "genus", NA, species)) %>%
   select(qseqid, taxon, taxonomic_level, species, genus, family, order, class, phylum, kingdom) %>%
   unique()
-
 ```
 
 ```{r}

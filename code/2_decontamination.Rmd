@@ -5,7 +5,7 @@ date: "2024-07-02"
 output: html_document
 ---
 
-latest update: 24 July 2024
+latest update: 27 Sept 2024
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -368,11 +368,11 @@ asv_table_filter3 <- asv_table_filter2_with_tax %>%
 
 ```{r}
 asv_table_filter3 %>%
-  filter(sample_type == "pcr_blank") %>%
+  filter(sample_type %in% c("pcr_blank","extraction_blank")) %>%
   ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
   geom_bar(stat = "identity") + 
   theme_bw() +
-  facet_grid(~seq_date, scales = "free_x") + 
+  facet_grid(sample_type~seq_date, scales = "free_x") + 
   labs(
     y = "number of sequencing reads",
     x = "sample ID",
@@ -389,8 +389,9 @@ asv_table_filter3 %>%
 keep this at the asv level
 ```{r}
 asvs_PCRN <- asv_table_filter3 %>%
-  filter(sample_type == "pcr_blank") %>%
-  group_by(seq_date, ASV) %>%
+  filter(sample_type %in% c("pcr_blank","extraction_blank")) %>%
+  filter(seq_date %in% c(20240611, 20240613)) %>%   ## just looking at runs with DBO samples here
+  group_by(sample_type, seq_date, ASV) %>%
   summarise(total = sum(reads),
             max = max(reads),
             mean = mean(reads)) %>%
@@ -399,29 +400,33 @@ asvs_PCRN <- asv_table_filter3 %>%
 
 asvs_PCRN
 ```
+ASV2 - herring
+ASV195 - herring
+ASV3 - Stichaeidae
+ASV1 - walleye pollock
+ASV6 - arctic cod
 
-okay, so subtracting the max reads in the pcr negative would remove quite a few pink salmon (asv 13) occurrences from 20240423 run.  probably don't want to use that approach.  
 
-i will use the mean read count per ASV in the negative controls as the cutoff value
+I will NOT subtract any reads from samples based on the extraction or PCR negative controls. 
 ```{r}
-asvs_PCRN_mean <- asvs_PCRN %>%
-  select(!total) %>%
-  select(!max)
-  
-pcrn_table <- asv_table_filter3 %>%
-  left_join(asvs_PCRN_mean, by = c("seq_date", "ASV")) %>%
-  mutate(mean = ifelse(is.na(mean), 0, mean)) %>%
-  mutate(reads_pcrn_removed = reads - mean) %>%
-  mutate(reads_pcrn_removed = if_else(reads_pcrn_removed < 0, 0, reads_pcrn_removed))
-pcrn_table
+# asvs_PCRN_mean <- asvs_PCRN %>%
+#   select(!total) %>%
+#   select(!max)
+#   
+# pcrn_table <- asv_table_filter3 %>%
+#   left_join(asvs_PCRN_mean, by = c("seq_date", "ASV")) %>%
+#   mutate(mean = ifelse(is.na(mean), 0, mean)) %>%
+#   mutate(reads_pcrn_removed = reads - mean) %>%
+#   mutate(reads_pcrn_removed = if_else(reads_pcrn_removed < 0, 0, reads_pcrn_removed))
+# pcrn_table
 ```
 
 clean up the table by removing columns no longer needed 
 ```{r}
-asv_table_filter4 <- pcrn_table %>%
-  select(!reads) %>%
-  select(!mean) %>%
-  dplyr::rename(reads = reads_pcrn_removed)
+# asv_table_filter4 <- pcrn_table %>%
+#   select(!reads) %>%
+#   select(!mean) %>%
+#   dplyr::rename(reads = reads_pcrn_removed)
 ```
 
 
@@ -452,7 +457,7 @@ asv_table_filter4 %>%
 
 look closer at DBO 2023
 ```{r}
-asv_table_filter4 %>%
+asv_table_filter3 %>%
   separate(sample_ID_date, into = c("extraction_ID", "replicate", "seq_date2"),  remove = F) %>%
   filter(sample_type == "field_blank") %>%
   filter(project_year == "DBO_2023") %>%
@@ -475,7 +480,6 @@ asv_table_filter4 %>%
 ```
 
 three pcr reps of each field blank extraction. only field blank has lots of seqs in all three pcr reps. will need to report. 
-
 
 look closer at NBS 2021 
 ```{r}
@@ -579,466 +583,10 @@ asv_table_filter4 %>%
 
 alrighty, depending on how i end up handling field samples, the high dissimilarity and single pcr reps with seqs from field blanks may be able to stand out from the real samples.  
 
-
 no extraction or field negatives sequenced with 2021 DBO data 
 
 ```{r}
-write.csv(asv_table_filter4, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/decontaminated_asv_table.csv")
+write.csv(asv_table_filter3, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/decontaminated_asv_table.csv")
 ```
-
-
-## Step 6. explore the field samples 
-- use species accumulation curves with respect to the number of corrected reads to explore if that the sequencing depth was sufficient to detect all of the species contained in a sample
-
-
-but first let's check how many pcr reps each extraction has 
-
-are there any samples that have made it to this point that don't actually have any reads? 
-```{r}
-ZeroReadCount_summary <- asv_table_filter4 %>%
-  group_by(sample_ID_date, sample_type) %>%
-  summarise(total_reads = sum(reads)) %>%
-  filter(total_reads == 0) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())
-ZeroReadCount_summary 
-
-ZeroReadCount <- asv_table_filter4 %>%
-  group_by(sample_ID_date, sample_type) %>%
-  summarise(total_reads = sum(reads)) %>%
-  filter(total_reads == 0)
-```
-
-quite a few negative and also many samples without any sequencing reads 
-
-```{r}
-asv_table_filter5 <- asv_table_filter4 %>% 
-  filter(!sample_ID_date %in% ZeroReadCount$sample_ID_date) %>%
-  separate(sample_ID_date, into = c("extraction_ID", "rep", "seq_date2"), sep = "-", remove = F)
-```
-
-how many extractions (excluding the ones with zero reads) have only one pcr replicate? 
-```{r}
-OneRep <- asv_table_filter5 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep == 1) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())
-OneRep
-
-OneRep_toremove <- asv_table_filter5 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep == 1)
-```
-
-how many extractions have two pcr replicates? 
-```{r}
-TwoRep <- asv_table_filter5 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep == 2) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())  
-TwoRep
-```
-
-how many extractions have three pcr replicates? 
-```{r}
-ThreeRep <- asv_table_filter5 %>%
-  group_by(extraction_ID, sample_type) %>%
-  summarise(nrep = n_distinct(sample_ID_date)) %>%
-  filter(nrep >= 3) %>%
-  group_by(sample_type) %>%
-  summarize(total = n())  
-ThreeRep
-```
-
-only keep extractions where at least 2 of the PCR replicates have reads 
-```{r}
-asv_table_filter6 <- asv_table_filter5 %>% 
-  filter(!extraction_ID %in% OneRep_toremove$extraction_ID)
-```
-
-
-now i'm switching from filtering by the pcr replicate level, and going to consider reads per bottle of water (extraction_ID / biological replicate)
-also going to work at the taxon level, instead of with ASVs 
-
-```{r}
-taxon_table_1 <- asv_table_filter6 %>%
-  group_by(extraction_ID, project_year, project, collection_year, sample_type, taxon, taxonomic_level, species, genus, family, order, class) %>%
-  summarize(tot_reads = sum(reads))
-```
-
-let's get to the accumulation curve using extraction IDs 
-
-read in some metadata that groups extractions IDs into sites 
-```{r}
-metadata <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/data/NBS_SBS_DBO_metadata.csv") 
-
-metadata_mini <- metadata %>%
-  select(extraction_ID, project, collection_year, location1, depth, longitude, latitude)
-```
-
-
-iNext crashes easily because of too many samples.  will need to break this up by project and year and subsets of samples...
-```{r}
-NBS_2021 <- taxon_table_1 %>%
-  filter(project_year == "NBS_2021")
-
-NBS_2022 <- taxon_table_1 %>%
-  filter(project_year == "NBS_2022")
-
-SBS_2022 <- taxon_table_1 %>%
-  filter(project_year == "SBS_2022")
-
-NBS_2023 <- taxon_table_1 %>%
-  filter(project_year == "NBS_2023")
-
-DBO_2023 <- taxon_table_1 %>%
-  filter(project_year == "DBO_2023")
-```
-
-join with some metadata 
-```{r}
-NBS_2021_w_meta <- NBS_2021 %>%
-  left_join(metadata_mini)
-
-NBS_2022_w_meta <- NBS_2022 %>%
-  left_join(metadata_mini)
-
-SBS_2022_w_meta <- SBS_2022 %>%
-  left_join(metadata_mini)
-
-NBS_2023_w_meta <- NBS_2023 %>%
-  left_join(metadata_mini)
-```
-
-
-try out accumulation curve to evaluate sequencing depth 
-```{r}
-library(iNEXT)
-library(ggplot2)
-
-# need N lists of species read counts 
-
-taxon_table_2 <- NBS_2021_w_meta %>%
-   pivot_wider(names_from = taxon, values_from = tot_reads)
-taxon_table_2
-
-# now convert the taxon table to lists of species abundances (one list per pcr rep)
-
-# make a variable for the first and last ASV column in the table
-tax_first <- which(colnames(taxon_table_2) == "Acantholumpenus mackayi")  
-tax_last <- ncol(taxon_table_2)
-
-# okay, need to go back to long format 
-taxon_long <- taxon_table_2 %>%
-  pivot_longer(cols = tax_first:tax_last, names_to = "taxon", values_to = "reads") %>%    
-  filter(reads > 0) %>% # filter out entries with no reads
-  arrange(extraction_ID, desc(reads))  # sort reads in descending order and group by sample
-
-st <- taxon_long %>%
-  filter(location1 %in% c("5"))
-
-# Nest the data to create a list of species reads for each sample
-read_lists <- st %>%
-  #group_by(sample_ID_date) %>%
-  group_by(extraction_ID) %>%
-  nest() %>%
-  mutate(
-    species_read_list = map(data, ~ .x %>% select(taxon, reads))
-  ) %>%
-  #select(sample_ID_date, species_read_list)
-  select(extraction_ID, species_read_list)
-
-#Convert to a list of lists
-read_list_final <- read_lists %>%
-  pull(species_read_list) %>%
-  #setNames(read_lists$sample_ID_date)
-  setNames(read_lists$extraction_ID)
-
-# Convert each table to a numeric vector of abundances
-read_lists_vector <- map(read_list_final, ~ {
-  .x %>%
-    filter(reads > 0) %>%
-    arrange(desc(reads)) %>%
-    pull(reads)
-})
-
-# knots is the number of intervals
-# endpoint is the max read count 
-# m can designate sample size 
-
-# try to run iNEXT - the function doesn't like non-integers so lots of warning will pop up.
-#out_nbs2023_st38 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance")
-#out_nbs2023_st2_80knots <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", knots = 80, endpoint = 100000) 
-#out_nbs2021_st46 <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", knots = 80)
-
-#set a series of sample sizes for (m) 
-m <- c(1,50,100,250,500,1000,2000,3000,4000,5000,10000,20000,30000,40000)
-
-out_nbs2021_st20_m <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", size = m)
-out_nbs2021_st5_m <- iNEXT(read_lists_vector, q = 0, datatype = "abundance", size = m)
-
-```
-
-check out the output 
-```{r}
-out_nbs2021_st20_m$DataInfo
-out_nbs2021_st20_m$iNextEst
-out_nbs2021_st20_m$AsyEst
-```
- 
-
-custom plot since ggiNEXT is giving me color problems 
-```{r}
-df <- fortify(out_nbs2021_st5_m, type=1)
-df.point <- df[which(df$Method=="Observed"),]
-df.line <- df[which(df$Method!="Observed"),]
-df.line$Method <- factor(df.line$Method,  c("Rarefaction", "Extrapolation"), c("Rarefaction", "Extrapolation"))
-
-my_plot <- ggplot(df, aes(x=x, y=y, colour=Assemblage)) +  
-  geom_point(size=5, data=df.point) + 
-  geom_line(aes(linetype=Method), lwd=1.5, data=df.line) + 
-  geom_ribbon(aes(ymin=y.lwr, ymax=y.upr, fill=Assemblage, colour=NULL), alpha=0.2) + 
-  labs(x="number of sequencing reads per 1-L bottle", y="Number of detected taxa", 
-       title = "NBS 2021 Station 5") + 
-  theme(legend.position = "bottom",  legend.title=element_blank(), text=element_text(size=18), legend.box = "vertical") +
-  xlim(0, 10000) + 
-  theme_minimal()
-my_plot
-```
- 
-```{r}
-#ggsave("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/accumulation_curves/NBS_2023_st12_23_38_43_zoom.png", plot = my_plot, dpi = 150, width = 8, height = 6)
-```
-
-```{r}
-#extract iNEXT result 
-accumulation_data <- out_nbs2021_st5_m$iNextEst[[1]] 
-```
-
-maybe try to come back see if i can quantitatively determine the number of reads to be within x % of the max/observed species richness???? 
-
-for now, i am going to aggregate data by the extraction ID and remove any extractions with less than 2000 reads total from the dataset. 
-
-```{r}
-bottles_lessthan_2000 <- taxon_table_1 %>%
-  group_by(extraction_ID, project_year, sample_type) %>%
-  summarize(reads = sum(tot_reads)) %>%
-  filter(reads < 2000)
-```
-
-```{r}
-taxon_table_3 <- taxon_table_1 %>%
-  filter(!extraction_ID %in% bottles_lessthan_2000$extraction_ID)
-```
-
-```{r}
-write.csv(taxon_table_3, "/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/decontaminated_taxon_table.csv")
-```
-
-
-
-ENDING THIS SCRIPT HERE! SWITCHING TO 3_prelim_figures.Rmd 
-
-
-
-
-## next closer look at SBS data
--compare samples with multiple library preps
-- can we combine? just use one or the other??? 
-
-```{r}
-SBS_2022_w_library_meta <- SBS_2022 %>%
-  left_join(sample_metadata) %>%
-  left_join(metadata_mini) %>%
-  select(!seq_date2) 
-
-SBS_2022_x2 <- SBS_2022_w_library_meta %>%
-  filter(extraction_plate == "16_2023") %>%
-  filter(sample_type == "sample")
-
-# check number of pcr reps on each sequencing run 
-SBS_2022_x2 %>%
-  group_by(seq_date) %>%
-  summarise(nrep = n_distinct(sample_ID_date))
-```
-okay, so three pcr reps difference - double check where that comes from but okay for now. 
-
-
-```{r}
-SBS_2022_x2 %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
-
-SBS2022 double sequenced locations
-```{r}
-unique(SBS_2022_x2$location1) 
-```
-
-
- 
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "16") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
-
-
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "18") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
- 
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "19") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-``` 
-
-
-
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "20") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
-
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "24") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
-
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "23") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
-
-```{r}
-SBS_2022_x2 %>%
-  filter(location1 == "37") %>%
-  ggplot(aes(x=sample_ID_date, y=reads, fill=taxon)) +
-  geom_bar(stat = "identity") + 
-  facet_grid(~pcr_personnel, scales = "free_x") + 
-  theme_bw() +
-  labs(
-    y = "number of sequencing reads",
-    x = "sample ID",
-    title = "SBS 2022 - 2x sequenced") + 
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.95),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    legend.title = element_blank()
-  )
-```
-
-so apart form station 18, the species showing up in the first library are mostly the same as the species in the second. 
-
 
 

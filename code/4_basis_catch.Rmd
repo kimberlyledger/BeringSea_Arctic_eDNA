@@ -1,0 +1,206 @@
+---
+title: "catch data"
+author: "Kimberly Ledger"
+date: "2024-08-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+libraries
+```{r}
+library(tidyverse)
+library(ggplot2)
+rename <- dplyr::rename
+```
+
+```{r}
+catch <- read.csv("~/BeringSea_Arctic_eDNA/data/catch_basis/basis_catch_at_edna_stations.csv") %>%
+  separate(stationid, into = c("year_x", "survey_x", "station_x"), sep = c(4,8), remove = F)
+```
+
+```{r}
+catch_2023 <- catch %>%
+  filter(year_x == 2023)
+```
+
+
+
+```{r}
+catch_summary <- catch %>%
+  group_by(year, survey_x, station, scientificname) %>%
+  summarize(biomass = sum (totalcatchwt)) %>%
+  mutate(survey_x = ifelse(survey_x == "0201", "NBS", survey_x),
+         survey_x = ifelse(survey_x == "0202", "NBS", survey_x),
+         survey_x = ifelse(survey_x == "0308", "SBS", survey_x))
+```
+
+how do the species in the SBS eDNA and SBS catch match up? 
+```{r}
+SBS2022 <- catch_summary %>%
+  filter(survey_x == "SBS") %>%
+  group_by(scientificname) %>%
+  summarise(total_biomass = sum(biomass)) %>%
+  arrange(desc(total_biomass))
+```
+
+```{r}
+NBS2021 <- catch_summary %>%
+  filter(survey_x == "NBS") %>%
+  filter(year == "2021") %>%
+  group_by(scientificname) %>%
+  summarise(total_biomass = sum(biomass)) %>%
+  arrange(desc(total_biomass))
+```
+
+```{r}
+NBS2022 <- catch_summary %>%
+  filter(survey_x == "NBS") %>%
+  filter(year == "2022") %>%
+  group_by(scientificname) %>%
+  summarise(total_biomass = sum(biomass)) %>%
+  arrange(desc(total_biomass))
+```
+
+```{r}
+NBS2023 <- catch_summary %>%
+  filter(survey_x == "NBS") %>%
+  filter(year == "2023") %>%
+  group_by(scientificname) %>%
+  summarise(total_biomass = sum(biomass)) %>%
+  arrange(desc(total_biomass))
+```
+
+
+load eDNA data 
+```{r}
+taxon_table <- read.csv("/home/kimberly.ledger/BeringSea_Arctic_eDNA/outputs/20240806/taxon_table_w_meta.csv")
+```
+
+
+```{r}
+SBS2022_eDNA <- taxon_table %>%
+  filter(project_year == "SBS_2022") %>%
+  group_by(taxon) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  arrange(desc(reads))
+```
+
+
+```{r}
+NBS2021_eDNA <- taxon_table %>%
+  filter(project_year == "NBS_2021") %>%
+  group_by(taxon) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  arrange(desc(reads)) %>%
+  filter(reads > 0)
+```
+
+```{r}
+NBS2022_eDNA <- taxon_table %>%
+  filter(project_year == "NBS_2022") %>%
+  group_by(taxon) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  arrange(desc(reads)) %>%
+  filter(reads > 0)
+```
+
+```{r}
+NBS2023_eDNA <- taxon_table %>%
+  filter(project_year == "NBS_2023") %>%
+  group_by(taxon) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  arrange(desc(reads)) %>%
+  filter(reads > 0)
+```
+
+```{r}
+DBO_eDNA <- taxon_table %>%
+  filter(project == "DBO") %>%
+  filter(location2 %in% c("DBO_3", "DBO_4", "DBO_5")) %>%
+  group_by(taxon) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  arrange(desc(reads)) %>%
+  filter(reads > 0)
+```
+
+```{r}
+write.csv(SBS2022_eDNA, "outputs/20240806/SBS2022_reads.csv")
+write.csv(NBS2021_eDNA, "~/BeringSea_Arctic_eDNA/outputs/20240806/NBS2021_reads.csv")
+write.csv(NBS2022_eDNA, "~/BeringSea_Arctic_eDNA/outputs/20240806/NBS2022_reads.csv")
+write.csv(NBS2023_eDNA, "~/BeringSea_Arctic_eDNA/outputs/20240806/NBS2023_reads.csv")
+write.csv(DBO_eDNA, "~/BeringSea_Arctic_eDNA/outputs/20240806/DBO_reads_stations3to5.csv")
+
+```
+
+## investigate a few DBO samples that i ran qPCR assay on 
+```{r}
+taxon_table %>%
+  filter(collection_year == "2023") %>%
+  filter(location2 == "DBO_1") %>%
+  filter(taxon == "Gadus chalcogrammus") %>%
+  arrange(desc(tot_reads)) %>%
+  select(extraction_ID, location1, tot_reads)
+
+taxon_table %>%
+  filter(collection_year == "2023") %>%
+  filter(location2 == "DBO_5") %>%
+  filter(taxon == "Boreogadus saida") %>%
+  arrange(desc(tot_reads)) %>%
+  select(extraction_ID, location1, tot_reads)
+```
+
+
+
+```{r}
+catch %>%
+  filter(survey_x == "0202") %>%
+  filter(scientificname == "Anarhichas orientalis")
+```
+
+
+okay, i want to check the species that i'm getting in eDNA that never show up in the catch - make sure that i've not nothing completely ridiculous in there. 
+
+
+```{r}
+taxon_all <- taxon_table %>%
+  filter(project != "DBO") %>%   ## Not considering DBO samples here
+  group_by(taxon) %>%
+  summarize(reads = sum(tot_reads)) %>%
+  arrange(desc(reads)) %>%
+  filter(reads > 0)
+```
+
+```{r}
+catch_allstaions <- read.csv("~/BeringSea_Arctic_eDNA/data/catch_basis/basis_catch_at_edna_stations.csv")
+```
+
+```{r}
+catch_all <- catch_allstaions %>%
+  group_by(scientificname) %>%
+  summarise(total_biomass = sum(totalcatchwt)) %>%
+  arrange(desc(total_biomass))
+```
+
+
+anti-join to keep just want is in eDNA but not catch 
+```{r}
+eDNA_nocatch <- taxon_all %>%
+  anti_join(catch_all, by = c("taxon" = "scientificname"))
+```
+
+
+```{r}
+write.csv(eDNA_nocatch, "~/BeringSea_Arctic_eDNA/outputs/20240806/eDNA_nocatch.csv")
+```
+
+
+
+```{r}
+catch_all %>%
+  filter(str_detect(scientificname, "Stichaeus"))
+```
+

@@ -1,7 +1,7 @@
 qseqid,taxonomic_level,taxon,species,genus,family,order,class,phylum,kingdom,seq_percID,top_perc,diff
-ASV_0086,family,Stichaeidae 1,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,99.408,0
-ASV_0665,family,Stichaeidae 1,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,98.817,0
-ASV_1527,family,Stichaeidae 1,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.401,99.401,0
+ASV_0086,species,Leptoclinus maculatus,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,99.408,0
+ASV_0665,species,Leptoclinus maculatus,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,98.817,98.817,0
+ASV_1527,species,Leptoclinus maculatus,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.401,99.401,0
 ASV_0003,family,Stichaeidae 1,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,100,0
 ASV_0003,family,Stichaeidae 1,Lumpenus fabricii,Lumpenus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,100,100,0
 ASV_0069,family,Stichaeidae 1,Leptoclinus maculatus,Leptoclinus,Stichaeidae,Perciformes,Actinopteri,Chordata,Eukaryota,99.408,99.408,0
